@@ -1,0 +1,45 @@
+#toolGroup {
+    width: 20%;
+    height: 100vh;
+    background-color: lightgray;
+    float: left;
+}
+
+#background {
+    position: relative;
+    background-color: black;
+    height: 100vh;
+}
+
+#myCanvas {
+    position: absolute;
+    left: 20%;
+}
+
+#settingsGroup {
+    width: 20%;
+    height: 100vh;
+    background-color: lightgray;
+    float: right;
+}
+
+#color_palette {
+    display: block;
+    margin: auto;
+    margin-top: 50px;
+    margin-bottom: 70px; 
+}
+
+#linewidth-chooser {
+    float: right;
+}
+
+#linewidth-chooser circle {
+    fill: white;
+}
+
+.bottom-side {
+    position: absolute;
+    top: 60vh;
+    left: 85vw;
+}
