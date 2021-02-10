@@ -127,9 +127,9 @@ function bucketTool(e) {
     var StartG = colorLayer.data[pixelPos+1];
     var StartB = colorLayer.data[pixelPos+2];
     var StartA = colorLayer.data[pixelPos+3];
-    
+
     var FillColorRGB = HEXtoRGB(ctx.strokeStyle);
-    
+
     if (StartR !== FillColorRGB[0] || StartG !== FillColorRGB[1] || StartB !== FillColorRGB[2]) {
         while(pixelStack.length)
         {
