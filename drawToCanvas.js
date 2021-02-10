@@ -85,7 +85,7 @@ function beginLine(e) {
             ctx.moveTo(pos.x, pos.y);
         }
     } else if (mode == 'fill') {
-        bucketTest(e);
+        bucketTool(e);
     }
 }
 
@@ -130,7 +130,7 @@ function bucketTest(e) {
 // bucket tool (fill tool) from
 // http://www.williammalone.com/articles/html5-canvas-javascript-paint-bucket-tool/
 function bucketTool(e) {
-    colorLayer = ctx.getImageData(offset_x, offset_y, canvas.width, canvas.height);
+    colorLayer = ctx.getImageData(0, 0, canvas.width, canvas.height);
     startX = getX(e);
     startY = getY(e);
     pixelStack = [[startX, startY]];
@@ -147,7 +147,7 @@ function bucketTool(e) {
         x = newPos[0];
         y = newPos[1];
         pixelPos = (y * canvas.width + x) * 4;
-        while(y-- >= rect.top && matchStartColor(pixelPos))
+        while(y-- >= 0 && matchStartColor(pixelPos))
         {
             pixelPos -= canvas.width * 4;
         }
@@ -155,11 +155,11 @@ function bucketTool(e) {
         ++y;
         reachLeft = false;
         reachRight = false;
-        while(y++ < rect.bot-1 && matchStartColor(pixelPos))
+        while(y++ < canvas.height - 1 && matchStartColor(pixelPos))
         {
             colorPixel(pixelPos);
 
-            if(x > rect.left)
+            if(x > 0)
             {
                 if(matchStartColor(pixelPos - 4))
                 {
@@ -174,7 +174,7 @@ function bucketTool(e) {
                 }
             }
 
-            if(x < rect.right-1)
+            if(x < canvas.width - 1)
             {
                 if(matchStartColor(pixelPos + 4))
                 {
