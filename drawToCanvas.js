@@ -34,7 +34,7 @@ function clearAll() {
     rubber.style.fill = 'white';
     background_btn.style.fill = 'white';
     fill.style.fill = 'white';
-    
+
     show_color.style.fill = 'black';
 }
 
@@ -58,7 +58,7 @@ function load() {
     rubber.style.fill = 'white';
     background_btn.style.fill = 'white';
     fill.style.fill = 'white';
-    
+
     show_color.style.fill = 'black';
 }
 
@@ -73,6 +73,7 @@ function fillBackground() {
 
 // new position from mouse event
 function beginLine(e) {
+
     if (mode == 'pencil' || mode == 'rubber') {
         if (e.button == 1) {
             fillBackground()
@@ -83,6 +84,8 @@ function beginLine(e) {
             ctx.beginPath();
             ctx.moveTo(pos.x, pos.y);
         }
+    } else if (mode == 'fill') {
+        bucketTest(e);
     }
 }
 
@@ -111,12 +114,28 @@ function endLine(e) {
     }
 }
 
+function bucketTest(e) {
+    var width = canvas.width;
+    var height = canvas.height;
+    colorLayer = ctx.getImageData(offset_x, offset_y, width, height);
+    x = getX(e);
+    y = getY(e);
+    var pos = (x * canvas.width + y) * 4;
+    console.log(colorLayer.data[pos]);
+    console.log(colorLayer.data[pos + 1]);
+    console.log(colorLayer.data[pos + 2]);
+    console.log(colorLayer.data[pos + 3]);
+}
+
 // bucket tool (fill tool) from
 // http://www.williammalone.com/articles/html5-canvas-javascript-paint-bucket-tool/
 function bucketTool(e) {
-    startX = getX(e)
-    startY = getY(e)
+    colorLayer = ctx.getImageData(offset_x, offset_y, canvas.width, canvas.height);
+    startX = getX(e);
+    startY = getY(e);
     pixelStack = [[startX, startY]];
+    pixelPos = (startY * canvas.width + startX) * 4;
+
     var StartR = colorLayer.data[pixelPos];
     var StartG = colorLayer.data[pixelPos+1];
     var StartB = colorLayer.data[pixelPos+2];
@@ -127,12 +146,12 @@ function bucketTool(e) {
         newPos = pixelStack.pop();
         x = newPos[0];
         y = newPos[1];
-        pixelPos = (y*canvasWidth + x);
+        pixelPos = (y * canvas.width + x) * 4;
         while(y-- >= rect.top && matchStartColor(pixelPos))
         {
-            pixelPos -= canvas.width;
+            pixelPos -= canvas.width * 4;
         }
-        pixelPos += canvas.width;
+        pixelPos += canvas.width * 4;
         ++y;
         reachLeft = false;
         reachRight = false;
@@ -142,7 +161,7 @@ function bucketTool(e) {
 
             if(x > rect.left)
             {
-                if(matchStartColor(pixelPos - 1))
+                if(matchStartColor(pixelPos - 4))
                 {
                     if(!reachLeft){
                         pixelStack.push([x - 1, y]);
@@ -157,7 +176,7 @@ function bucketTool(e) {
 
             if(x < rect.right-1)
             {
-                if(matchStartColor(pixelPos + 1))
+                if(matchStartColor(pixelPos + 4))
                 {
                     if(!reachRight)
                     {
@@ -171,18 +190,18 @@ function bucketTool(e) {
                 }
             }
 
-            pixelPos += canvas.width;
+            pixelPos += canvas.width * 4;
         }
     }
-    context.putImageData(colorLayer, 0, 0);
+    ctx.putImageData(colorLayer, 0, 0);
 
     function matchStartColor(pixelPos)
     {
         var r = colorLayer.data[pixelPos];
-        var g = colorLayer.data[pixelPos+1];
-        var b = colorLayer.data[pixelPos+2];
+        var g = colorLayer.data[pixelPos + 1];
+        var b = colorLayer.data[pixelPos + 2];
 
-        return (r == StartR && g == StartG && b == Startb);
+        return (r == StartR && g == StartG && b == StartB);
     }
 
     function HEXtoRGB(hex) {
@@ -257,6 +276,14 @@ pencil.addEventListener('click', function(event) {
 });
 
 var fill = document.getElementById('fill');
+fill.addEventListener('click', function(event) {
+    ctx.strokeStyle = last_color;
+    mode = 'fill'
+    pencil.style.fill = 'white';
+    rubber.style.fill = 'white';
+    background_btn.style.fill = 'white';
+    fill.style.fill = 'gray';
+});
 
 var background_btn = document.getElementById('background-btn');
 background_btn.addEventListener('click', function(event) {
