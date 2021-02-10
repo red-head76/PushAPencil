@@ -62,8 +62,8 @@ function load() {
     show_color.style.fill = 'black';
 }
 
-function getX(e) { return (e.clientX - offset_x); }
-function getY(e) { return (e.clientY - offset_y); }
+function getX(e) { return (e.clientX - Math.floor(offset_x)); }
+function getY(e) { return (e.clientY - Math.floor(offset_y)); }
 
 function fillBackground() {
     ctx.fillStyle = ctx.strokeStyle;
@@ -114,19 +114,6 @@ function endLine(e) {
     }
 }
 
-function bucketTest(e) {
-    var width = canvas.width;
-    var height = canvas.height;
-    colorLayer = ctx.getImageData(offset_x, offset_y, width, height);
-    x = getX(e);
-    y = getY(e);
-    var pos = (x * canvas.width + y) * 4;
-    console.log(colorLayer.data[pos]);
-    console.log(colorLayer.data[pos + 1]);
-    console.log(colorLayer.data[pos + 2]);
-    console.log(colorLayer.data[pos + 3]);
-}
-
 // bucket tool (fill tool) from
 // http://www.williammalone.com/articles/html5-canvas-javascript-paint-bucket-tool/
 function bucketTool(e) {
@@ -139,67 +126,73 @@ function bucketTool(e) {
     var StartR = colorLayer.data[pixelPos];
     var StartG = colorLayer.data[pixelPos+1];
     var StartB = colorLayer.data[pixelPos+2];
-
-    while(pixelStack.length)
-    {
-        var newPos, x, y, pixelPos, reachLeft, reachRight;
-        newPos = pixelStack.pop();
-        x = newPos[0];
-        y = newPos[1];
-        pixelPos = (y * canvas.width + x) * 4;
-        while(y-- >= 0 && matchStartColor(pixelPos))
+    var StartA = colorLayer.data[pixelPos+3];
+    
+    var FillColorRGB = HEXtoRGB(ctx.strokeStyle);
+    
+    if (StartR !== FillColorRGB[0] || StartG !== FillColorRGB[1] || StartB !== FillColorRGB[2]) {
+        while(pixelStack.length)
         {
-            pixelPos -= canvas.width * 4;
-        }
-        pixelPos += canvas.width * 4;
-        ++y;
-        reachLeft = false;
-        reachRight = false;
-        while(y++ < canvas.height - 1 && matchStartColor(pixelPos))
-        {
-            colorPixel(pixelPos);
-
-            if(x > 0)
+            var newPos, x, y, pixelPos, reachLeft, reachRight;
+            newPos = pixelStack.pop();
+            x = newPos[0];
+            y = newPos[1];
+            pixelPos = (y * canvas.width + x) * 4;
+            while(y-- >= 0 && matchStartColor(pixelPos))
             {
-                if(matchStartColor(pixelPos - 4))
-                {
-                    if(!reachLeft){
-                        pixelStack.push([x - 1, y]);
-                        reachLeft = true;
-                    }
-                }
-                else if(reachLeft)
-                {
-                    reachLeft = false;
-                }
+                pixelPos -= canvas.width * 4;
             }
-
-            if(x < canvas.width - 1)
-            {
-                if(matchStartColor(pixelPos + 4))
-                {
-                    if(!reachRight)
-                    {
-                        pixelStack.push([x + 1, y]);
-                        reachRight = true;
-                    }
-                }
-                else if(reachRight)
-                {
-                    reachRight = false;
-                }
-            }
-
             pixelPos += canvas.width * 4;
+            ++y;
+            reachLeft = false;
+            reachRight = false;
+            while(y++ < canvas.height && matchStartColor(pixelPos))
+            {
+                colorPixel(pixelPos);
+
+                if(x > 0)
+                {
+                    if(matchStartColor(pixelPos - 4))
+                    {
+                        if(!reachLeft){
+                            pixelStack.push([x - 1, y]);
+                            reachLeft = true;
+                        }
+                    }
+                    else if(reachLeft)
+                    {
+                        reachLeft = false;
+                    }
+                }
+
+                if(x < canvas.width)
+                {
+                    if(matchStartColor(pixelPos + 4))
+                    {
+                        if(!reachRight)
+                        {
+                            pixelStack.push([x + 1, y]);
+                            reachRight = true;
+                        }
+                    }
+                    else if(reachRight)
+                    {
+                        reachRight = false;
+                    }
+                }
+
+                pixelPos += canvas.width * 4;
+            }
+            ctx.putImageData(colorLayer, 0, 0);
         }
     }
-    ctx.putImageData(colorLayer, 0, 0);
 
     function matchStartColor(pixelPos)
     {
         var r = colorLayer.data[pixelPos];
         var g = colorLayer.data[pixelPos + 1];
         var b = colorLayer.data[pixelPos + 2];
+        var a = colorLayer.data[pixelPos + a];
 
         return (r == StartR && g == StartG && b == StartB);
     }
@@ -241,7 +234,7 @@ var show_color = document.getElementById('show-current-color');
 colors_array.forEach(function(color, index) {
     color.addEventListener('click', function() {
         if (color.id !== 'show-current-color') {
-            if (mode == 'pencil') {
+            if (mode == 'pencil' || mode == 'fill') {
                 ctx.strokeStyle = color.style.fill;
                 last_color = ctx.strokeStyle;
                 show_color.style.fill = color.style.fill;
