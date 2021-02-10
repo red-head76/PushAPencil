@@ -34,6 +34,8 @@ function clearAll() {
     rubber.style.fill = 'white';
     background_btn.style.fill = 'white';
     fill.style.fill = 'white';
+    
+    show_color.style.fill = 'black';
 }
 
 // resize canvas
@@ -56,6 +58,8 @@ function load() {
     rubber.style.fill = 'white';
     background_btn.style.fill = 'white';
     fill.style.fill = 'white';
+    
+    show_color.style.fill = 'black';
 }
 
 function getX(e) { return (e.clientX - offset_x); }
@@ -212,153 +216,24 @@ function bucketTool(e) {
 
 var color_palette = document.getElementById('color_palette');
 var colors = color_palette.getElementsByTagName('path');
-//for (var i=0; i < colors.length; i++) {
-//    colors[i].addEventListener('click', function(event) {
-//        console.log(colors[3])
-//        ctx.strokeStyle = colors[i].style.fill;
-//    });
-//}
+var colors_array = Array.prototype.slice.call(colors);
+var show_color = document.getElementById('show-current-color');
 
-colors[0].addEventListener('click', function(event) {
-        if (mode == 'pencil') {
-            ctx.strokeStyle = colors[0].style.fill;
-            last_color = ctx.strokeStyle;
-        } else if (mode == 'background') {
-            ctx.strokeStyle = colors[0].style.fill;
-            fillBackground();
-            ctx.strokeStyle = last_color;
+colors_array.forEach(function(color, index) {
+    color.addEventListener('click', function() {
+        if (color.id !== 'show-current-color') {
+            if (mode == 'pencil') {
+                ctx.strokeStyle = color.style.fill;
+                last_color = ctx.strokeStyle;
+                show_color.style.fill = color.style.fill;
+            } else if (mode == 'background') {
+                ctx.strokeStyle = color.style.fill;
+                fillBackground();
+                ctx.strokeStyle = last_color;
+            }
         }
     });
-colors[1].addEventListener('click', function(event) {
-        if (mode == 'pencil') {
-            ctx.strokeStyle = colors[1].style.fill;
-            last_color = ctx.strokeStyle;
-        } else if (mode == 'background') {
-            ctx.strokeStyle = colors[1].style.fill;
-            fillBackground();
-            ctx.strokeStyle = last_color;
-        }
-    });
-colors[2].addEventListener('click', function(event) {
-        if (mode == 'pencil') {
-            ctx.strokeStyle = colors[2].style.fill;
-            last_color = ctx.strokeStyle;
-        } else if (mode == 'background') {
-            ctx.strokeStyle = colors[2].style.fill;
-            fillBackground();
-            ctx.strokeStyle = last_color;
-        }
-    });
-colors[3].addEventListener('click', function(event) {
-        if (mode == 'pencil') {
-            ctx.strokeStyle = colors[3].style.fill;
-            last_color = ctx.strokeStyle;
-        } else if (mode == 'background') {
-            ctx.strokeStyle = colors[3].style.fill;
-            fillBackground();
-            ctx.strokeStyle = last_color;
-        }
-    });
-colors[4].addEventListener('click', function(event) {
-        if (mode == 'pencil') {
-            ctx.strokeStyle = colors[4].style.fill;
-            last_color = ctx.strokeStyle;
-        } else if (mode == 'background') {
-            ctx.strokeStyle = colors[4].style.fill;
-            fillBackground();
-            ctx.strokeStyle = last_color;
-        }
-    });
-colors[5].addEventListener('click', function(event) {
-        if (mode == 'pencil') {
-            ctx.strokeStyle = colors[5].style.fill;
-            last_color = ctx.strokeStyle;
-        } else if (mode == 'background') {
-            ctx.strokeStyle = colors[5].style.fill;
-            fillBackground();
-            ctx.strokeStyle = last_color;
-        }
-    });
-colors[6].addEventListener('click', function(event) {
-        if (mode == 'pencil') {
-            ctx.strokeStyle = colors[6].style.fill;
-            last_color = ctx.strokeStyle;
-        } else if (mode == 'background') {
-            ctx.strokeStyle = colors[6].style.fill;
-            fillBackground();
-            ctx.strokeStyle = last_color;
-        }
-    });
-colors[7].addEventListener('click', function(event) {
-        if (mode == 'pencil') {
-            ctx.strokeStyle = colors[7].style.fill;
-            last_color = ctx.strokeStyle;
-        } else if (mode == 'background') {
-            ctx.strokeStyle = colors[7].style.fill;
-            fillBackground();
-            ctx.strokeStyle = last_color;
-        }
-    });
-colors[8].addEventListener('click', function(event) {
-        if (mode == 'pencil') {
-            ctx.strokeStyle = colors[8].style.fill;
-            last_color = ctx.strokeStyle;
-        } else if (mode == 'background') {
-            ctx.strokeStyle = colors[8].style.fill;
-            fillBackground();
-            ctx.strokeStyle = last_color;
-        }
-    });
-colors[9].addEventListener('click', function(event) {
-        if (mode == 'pencil') {
-            ctx.strokeStyle = colors[9].style.fill;
-            last_color = ctx.strokeStyle;
-        } else if (mode == 'background') {
-            ctx.strokeStyle = colors[9].style.fill;
-            fillBackground();
-            ctx.strokeStyle = last_color;
-        }
-    });
-colors[10].addEventListener('click', function(event) {
-        if (mode == 'pencil') {
-            ctx.strokeStyle = colors[10].style.fill;
-            last_color = ctx.strokeStyle;
-        } else if (mode == 'background') {
-            ctx.strokeStyle = colors[10].style.fill;
-            fillBackground();
-            ctx.strokeStyle = last_color;
-        }
-    });
-colors[11].addEventListener('click', function(event) {
-        if (mode == 'pencil') {
-            ctx.strokeStyle = colors[11].style.fill;
-            last_color = ctx.strokeStyle;
-        } else if (mode == 'background') {
-            ctx.strokeStyle = colors[11].style.fill;
-            fillBackground();
-            ctx.strokeStyle = last_color;
-        }
-    });
-colors[12].addEventListener('click', function(event) {
-        if (mode == 'pencil') {
-            ctx.strokeStyle = colors[12].style.fill;
-            last_color = ctx.strokeStyle;
-        } else if (mode == 'background') {
-            ctx.strokeStyle = colors[12].style.fill;
-            fillBackground();
-            ctx.strokeStyle = last_color;
-        }
-    });
-colors[13].addEventListener('click', function(event) {
-        if (mode == 'pencil') {
-            ctx.strokeStyle = colors[13].style.fill;
-            last_color = ctx.strokeStyle;
-        } else if (mode == 'background') {
-            ctx.strokeStyle = colors[13].style.fill;
-            fillBackground();
-            ctx.strokeStyle = last_color;
-        }
-    });
+});
 
 var rubber = document.getElementById('rubber');
 rubber.addEventListener('click', function(event) {
