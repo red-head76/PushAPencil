@@ -4,12 +4,12 @@ var ctx = canvas.getContext('2d');
 // last known position
 var pos = { x: 0, y: 0 };
 var rect = canvas.getBoundingClientRect();
+var offset_x;
+var offset_y;
 
 var mode = 'pencil'; // pencil, fill
 var background_color = 'white';
 var last_color = 'black';
-var offset_x;
-var offset_y;
 
 window.addEventListener('load', load);
 window.addEventListener('resize', resize);
@@ -29,6 +29,11 @@ function clearAll() {
     fillBackground();
     ctx.strokeStyle = "black";
     last_color = 'black';
+
+    pencil.style.fill = 'gray';
+    rubber.style.fill = 'white';
+    background_btn.style.fill = 'white';
+    fill.style.fill = 'white';
 }
 
 // resize canvas
@@ -46,23 +51,21 @@ function load() {
     ctx.lineCap = "round";
     offset_x = rect.left;
     offset_y = rect.top;
+
+    pencil.style.fill = 'gray';
+    rubber.style.fill = 'white';
+    background_btn.style.fill = 'white';
+    fill.style.fill = 'white';
 }
 
-// fill background
+function getX(e) { return (e.clientX - offset_x); }
+function getY(e) { return (e.clientY - offset_y); }
+
 function fillBackground() {
     ctx.fillStyle = ctx.strokeStyle;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     background_color = ctx.strokeStyle;
 }
-
-function getX(e) {
-    return (e.clientX - offset_x);
-}
-
-function getY(e) {
-    return (e.clientY - offset_y)
-}
-
 
 // new position from mouse event
 function beginLine(e) {
@@ -88,7 +91,6 @@ function drawLine(e) {
 
         ctx.lineTo(pos.x, pos.y);
         ctx.stroke();
-        // ctx.beginPath();
         ctx.moveTo(pos.x, pos.y);
     }
 }
@@ -337,43 +339,57 @@ colors[11].addEventListener('click', function(event) {
             ctx.strokeStyle = last_color;
         }
     });
+colors[12].addEventListener('click', function(event) {
+        if (mode == 'pencil') {
+            ctx.strokeStyle = colors[12].style.fill;
+            last_color = ctx.strokeStyle;
+        } else if (mode == 'background') {
+            ctx.strokeStyle = colors[12].style.fill;
+            fillBackground();
+            ctx.strokeStyle = last_color;
+        }
+    });
+colors[13].addEventListener('click', function(event) {
+        if (mode == 'pencil') {
+            ctx.strokeStyle = colors[13].style.fill;
+            last_color = ctx.strokeStyle;
+        } else if (mode == 'background') {
+            ctx.strokeStyle = colors[13].style.fill;
+            fillBackground();
+            ctx.strokeStyle = last_color;
+        }
+    });
 
-small = document.getElementById('small');
-small.addEventListener('click', function(event) {
-    ctx.lineWidth = "1";
-});
-
-medium = document.getElementById('medium');
-medium.addEventListener('click', function(event) {
-    ctx.lineWidth = "5";
-});
-
-big = document.getElementById('big');
-big.addEventListener('click', function(event) {
-    ctx.lineWidth = "10";
-});
-
-huge = document.getElementById('huge');
-huge.addEventListener('click', function(event) {
-    ctx.lineWidth = "20";
-});
-
-rubber = document.getElementById('rubber');
+var rubber = document.getElementById('rubber');
 rubber.addEventListener('click', function(event) {
     last_color = ctx.strokeStyle;
     ctx.strokeStyle = background_color;
     mode = 'rubber';
+    pencil.style.fill = 'white';
+    rubber.style.fill = 'gray';
+    background_btn.style.fill = 'white';
+    fill.style.fill = 'white';
 });
 
-pencil = document.getElementById('pencil');
+var pencil = document.getElementById('pencil');
 pencil.addEventListener('click', function(event) {
     ctx.strokeStyle = last_color;
     mode = 'pencil';
+    pencil.style.fill = 'gray';
+    rubber.style.fill = 'white';
+    background_btn.style.fill = 'white';
+    fill.style.fill = 'white';
 });
+
+var fill = document.getElementById('fill');
 
 var background_btn = document.getElementById('background-btn');
 background_btn.addEventListener('click', function(event) {
     mode = 'background';
+    pencil.style.fill = 'white';
+    rubber.style.fill = 'white';
+    background_btn.style.fill = 'gray';
+    fill.style.fill = 'white';
 });
 
 var clear = document.getElementById('clear');
