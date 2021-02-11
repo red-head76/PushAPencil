@@ -123,69 +123,54 @@ function bucketTool(e) {
     startX = getX(e);
     startY = getY(e);
     pixelStack = [[startX, startY]];
-    pixelPos = (startY * canvasWidth + startX) * 4;
 
-    var StartR = colorLayer.data[pixelPos];
-    var StartG = colorLayer.data[pixelPos+1];
-    var StartB = colorLayer.data[pixelPos+2];
-    var StartA = colorLayer.data[pixelPos+3];
-    
+    function pixelPos(x, y) {   // converting x, y coordinates into 1d position
+        return ((y * canvasWidth + x) * 4);
+    }
+
+    var StartR = colorLayer.data[pixelPos(startX, startY)];
+    var StartG = colorLayer.data[pixelPos(startX, startY) + 1];
+    var StartB = colorLayer.data[pixelPos(startX, startY) + 2];
+    var StartA = colorLayer.data[pixelPos(startX, startY) + 3];
     var FillColorRGB = HEXtoRGB(ctx.strokeStyle);
-    console.log(FillColorRGB);
-    
-    var newPos, x, y, pixelPos, reachLeft, reachRight;
+    var newPos, x, y, reachLeft, reachRight;
 
     if (StartR !== FillColorRGB[0] || StartG !== FillColorRGB[1] || StartB !== FillColorRGB[2]) {
-        while(pixelStack.length)
-        {
+        while (pixelStack.length) {
             newPos = pixelStack.pop();
             x = newPos[0];
             y = newPos[1];
-            pixelPos = (y * canvasWidth + x) * 4;
-            while(y-- >= 0 && matchStartColor(pixelPos))
-            {
-                pixelPos -= canvasWidth * 4;
+            while (y >= 0 && matchStartColor(pixelPos(x, y))) {
+                y--;
             }
-            pixelPos += canvasWidth * 4;
-            ++y;
+            y++;
             reachLeft = false;
             reachRight = false;
-            while(y++ < canvasHeight-1 && matchStartColor(pixelPos))
-            {
-                colorPixel(pixelPos);
 
-                if(x > 0)
-                {
-                    if(matchStartColor(pixelPos - 4))
-                    {
-                        if(!reachLeft){
+            while (y < canvasHeight-1 && matchStartColor(pixelPos(x, y))) {
+                colorPixel(pixelPos(x, y));
+
+                if (x > 0) {
+                    if(matchStartColor(pixelPos(x, y) - 4)) {
+                        if(!reachLeft) {
                             pixelStack.push([x - 1, y]);
                             reachLeft = true;
                         }
-                    }
-                    else if(reachLeft)
-                    {
+                    } else if (reachLeft) {
                         reachLeft = false;
                     }
                 }
-
-                if(x < canvasWidth - 1)
-                {
-                    if(matchStartColor(pixelPos + 4))
-                    {
-                        if(!reachRight)
-                        {
+                if (x < canvasWidth - 1) {
+                    if (matchStartColor(pixelPos(x, y) + 4)) {
+                        if(!reachRight) {
                             pixelStack.push([x + 1, y]);
                             reachRight = true;
                         }
-                    }
-                    else if(reachRight)
-                    {
+                    } else if (reachRight) {
                         reachRight = false;
                     }
                 }
-
-                pixelPos += canvasWidth * 4;
+                y++;
             }
             ctx.putImageData(colorLayer, 0, 0);
         }
