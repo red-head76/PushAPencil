@@ -32,7 +32,7 @@ function clearAll() {
 
     pencil.style.fill = 'gray';
     rubber.style.fill = 'white';
-    background_btn.style.fill = 'white';
+    background.style.fill = 'white';
     fill.style.fill = 'white';
 
     show_color.style.fill = 'black';
@@ -56,7 +56,7 @@ function load() {
 
     pencil.style.fill = 'gray';
     rubber.style.fill = 'white';
-    background_btn.style.fill = 'white';
+    background.style.fill = 'white';
     fill.style.fill = 'white';
 
     show_color.style.fill = 'black';
@@ -316,7 +316,7 @@ rubber.addEventListener('click', function(event) {
     mode = 'rubber';
     pencil.style.fill = 'white';
     rubber.style.fill = 'gray';
-    background_btn.style.fill = 'white';
+    background.style.fill = 'white';
     fill.style.fill = 'white';
 });
 
@@ -326,7 +326,7 @@ pencil.addEventListener('click', function(event) {
     mode = 'pencil';
     pencil.style.fill = 'gray';
     rubber.style.fill = 'white';
-    background_btn.style.fill = 'white';
+    background.style.fill = 'white';
     fill.style.fill = 'white';
 });
 
@@ -336,16 +336,16 @@ fill.addEventListener('click', function(event) {
     mode = 'fill'
     pencil.style.fill = 'white';
     rubber.style.fill = 'white';
-    background_btn.style.fill = 'white';
+    background.style.fill = 'white';
     fill.style.fill = 'gray';
 });
 
-var background_btn = document.getElementById('background-btn');
-background_btn.addEventListener('click', function(event) {
+var background = document.getElementById('background-btn');
+background.addEventListener('click', function(event) {
     mode = 'background';
     pencil.style.fill = 'white';
     rubber.style.fill = 'white';
-    background_btn.style.fill = 'gray';
+    background.style.fill = 'gray';
     fill.style.fill = 'white';
 });
 
