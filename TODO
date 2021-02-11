@@ -1,19 +1,6 @@
-layout neu machen
-
-alle Knöpfe als svg erstellen (Auch Farbauswahl schöner)
-    - das Lineal von hier kopieren: http://www.williammalone.com/articles/create-html5-canvas-javascript-drawing-app/
-    - hover und active Funktion
-
-Fill funktion http://www.williammalone.com/articles/html5-canvas-javascript-paint-bucket-tool/
-
-colors addEventListener mit forAll()
-
-besseren Orange-Ton
-
-Multiplayer: https://www.youtube.com/watch?v=ppcBIHv_ZPs
-
-Funktion des Background Knopfes besprechen, Knopf ganz raus mittlere Maustaste verwenden?
-
-Abtastrate höher
-
-Zurückfunktion
+1 Multiplayer: https://www.youtube.com/watch?v=ppcBIHv_ZPs
+2 rechte Seite des Bildschirms gestalten
+3 layout neu machen
+3 Fill funktion optimieren http://www.williammalone.com/articles/html5-canvas-javascript-paint-bucket-tool/
+4 Abtastrate höher
+4 Zurückfunktion
