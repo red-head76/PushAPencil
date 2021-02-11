@@ -117,36 +117,40 @@ function endLine(e) {
 // bucket tool (fill tool) from
 // http://www.williammalone.com/articles/html5-canvas-javascript-paint-bucket-tool/
 function bucketTool(e) {
-    colorLayer = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    var canvasWidth = canvas.width;
+    var canvasHeight = canvas.height;
+    colorLayer = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
     startX = getX(e);
     startY = getY(e);
     pixelStack = [[startX, startY]];
-    pixelPos = (startY * canvas.width + startX) * 4;
+    pixelPos = (startY * canvasWidth + startX) * 4;
 
     var StartR = colorLayer.data[pixelPos];
     var StartG = colorLayer.data[pixelPos+1];
     var StartB = colorLayer.data[pixelPos+2];
     var StartA = colorLayer.data[pixelPos+3];
-
+    
     var FillColorRGB = HEXtoRGB(ctx.strokeStyle);
+    console.log(FillColorRGB);
+    
+    var newPos, x, y, pixelPos, reachLeft, reachRight;
 
     if (StartR !== FillColorRGB[0] || StartG !== FillColorRGB[1] || StartB !== FillColorRGB[2]) {
         while(pixelStack.length)
         {
-            var newPos, x, y, pixelPos, reachLeft, reachRight;
             newPos = pixelStack.pop();
             x = newPos[0];
             y = newPos[1];
-            pixelPos = (y * canvas.width + x) * 4;
+            pixelPos = (y * canvasWidth + x) * 4;
             while(y-- >= 0 && matchStartColor(pixelPos))
             {
-                pixelPos -= canvas.width * 4;
+                pixelPos -= canvasWidth * 4;
             }
-            pixelPos += canvas.width * 4;
+            pixelPos += canvasWidth * 4;
             ++y;
             reachLeft = false;
             reachRight = false;
-            while(y++ < canvas.height && matchStartColor(pixelPos))
+            while(y++ < canvasHeight-1 && matchStartColor(pixelPos))
             {
                 colorPixel(pixelPos);
 
@@ -165,7 +169,7 @@ function bucketTool(e) {
                     }
                 }
 
-                if(x < canvas.width)
+                if(x < canvasWidth - 1)
                 {
                     if(matchStartColor(pixelPos + 4))
                     {
@@ -181,7 +185,7 @@ function bucketTool(e) {
                     }
                 }
 
-                pixelPos += canvas.width * 4;
+                pixelPos += canvasWidth * 4;
             }
             ctx.putImageData(colorLayer, 0, 0);
         }
@@ -192,9 +196,9 @@ function bucketTool(e) {
         var r = colorLayer.data[pixelPos];
         var g = colorLayer.data[pixelPos + 1];
         var b = colorLayer.data[pixelPos + 2];
-        var a = colorLayer.data[pixelPos + a];
+        var a = colorLayer.data[pixelPos + 3];
 
-        return (r == StartR && g == StartG && b == StartB);
+        return (r == StartR && g == StartG && b == StartB && a==StartA);
     }
 
     function HEXtoRGB(hex) {
