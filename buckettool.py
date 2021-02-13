@@ -1,29 +1,25 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from queue import Queue
+import time
 
-cWidth = 100
-cHeight = 100
-colorLayer = np.ones((cWidth, cHeight)) * 3
+cWidth = 1000
+cHeight = 1000
+colorLayer = np.ones((cWidth, cHeight)) * 1
 
-startPixel = [50, 50]
-
-DesiredValue = 3
-
-colorLayer[np.arange(40, 60), 40] = 2
-colorLayer[np.arange(40, 60), 60] = 2
-colorLayer[40, np.arange(40, 60)] = 2
-colorLayer[59, np.arange(40, 60)] = 2
-for i in range(40, 60):
-    for j in range(40, 60):
-        if ((i - 50)**2 + (j - 50)**2) > 80:
-            colorLayer[i, j] = 2
+# colorLayer[np.arange(40, 60), 40] = 2
+# colorLayer[np.arange(40, 60), 60] = 2
+# colorLayer[40, np.arange(40, 60)] = 2
+# colorLayer[59, np.arange(40, 60)] = 2
+# for i in range(40, 60):
+#     for j in range(40, 60):
+#         if ((i - 50)**2 + (j - 50)**2) > 80:
+#             colorLayer[i, j] = 2
 
 
 def BucketTool(StartPixel, DesiredValue):
     pixelStack = Queue()
     pixelStack.put(startPixel)
-    print("Pixelstack", pixelStack.qsize())
     StartValue = colorLayer[startPixel[0], startPixel[1]]
     if (StartValue != DesiredValue):
         while (pixelStack.qsize()):
@@ -63,6 +59,8 @@ def setPixel(x, y):
     colorLayer[x, y] = DesiredValue
 
 
+t0 = time.time()
 BucketTool([50, 50], 3)
-plt.imshow(colorLayer)
-plt.show()
+print(time.time() - t0)
+# plt.imshow(colorLayer)
+# plt.show()

@@ -1,0 +1,23 @@
+{
+  "name": "pushapencil",
+  "version": "1.0.0",
+  "description": "A simple drawing game",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/red-head76/PushAPencil.git"
+  },
+  "author": "Luis und Mario",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/red-head76/PushAPencil/issues"
+  },
+  "homepage": "https://github.com/red-head76/PushAPencil#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "socket.io": "^3.1.1"
+  }
+}

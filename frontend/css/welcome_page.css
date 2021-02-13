@@ -1,0 +1,13 @@
+.content-box {
+    position: relative;
+    width: 60%;
+    margin: auto;
+    text-align: center;
+}
+
+.input-box {
+    position: relative;
+    width: 50%;
+    margin: auto;
+    text-align: left;
+}

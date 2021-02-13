@@ -8,7 +8,7 @@ var offset_x;
 var offset_y;
 
 var mode = 'pencil'; // pencil, fill
-var background_color = '#000000'; // Black
+var background_color = '#000000'; // Black, not really true, but background filling tool works then
 var last_color = '#000000';     // Black
 
 window.addEventListener('load', load);
