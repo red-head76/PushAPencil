@@ -15,8 +15,10 @@ app.use(express.static(path.join(__dirname, 'frontend')));
 // listen o connection event, this occures every time a new user connects
 // to the website
 io.on('connection', function (socket, name) {
-  io.emit('user join', { for: 'everyone'});
-  console.log('new user connected');
+    socket.on('new game lobby', function(user_name, game_id) {
+        console.log(user_name, game_id);
+        io.emit('new game lobby', user_name, game_id);
+    });
 });
 
 server.listen(PORT);
