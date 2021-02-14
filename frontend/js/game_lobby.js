@@ -2,6 +2,10 @@ const socket = io();
 
 window.addEventListener("load", load);
 
+const url = new URL(window.location.href);
+const user_name = url.searchParams.get("user-name");
+const game_code = url.searchParams.get("game-code");
+    
 socket.on("new game lobby", function(game_code) {
     // gets a new game code from the server and prints it to screen
     const game_code_span = document.getElementById("game-code");
@@ -11,15 +15,17 @@ socket.on("new game lobby", function(game_code) {
 
 socket.on("users in room", function(users) {
     users.forEach(user => createUserNameInList(user.user_name));
+    
+    // append the user itself after all users that where already here
+    createUserNameInList(user_name);    
+});
+
+socket.on("join game lobby", function(user_name) {
+    createUserNameInList(user_name);
 });
 
 function load() {
-    // append the username of the lobby creator to the list
-    const url = new URL(window.location.href);
-    const user_name = url.searchParams.get("user-name");
-    const game_code = url.searchParams.get("game-code");
-    createUserNameInList(user_name);
-    
+    // try to get the game code from url to see if the player wants to create or join a room
     if (game_code) {
         // user clicked on join room and passed therfore a game code
         socket.emit("join game lobby", game_code, user_name);
@@ -30,6 +36,7 @@ function load() {
         game_code_span.appendChild(code);
     } else {
         // user clicked on create room = no game code exists
+        createUserNameInList(user_name);
         socket.emit("new game lobby", user_name);
     }
 }

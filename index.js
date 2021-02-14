@@ -34,11 +34,11 @@ io.on('connection', function (socket, name) {
     socket.on('join game lobby', function(game_code, user_name) {
         if (rooms.includes(game_code)) {
             socket.join(game_code);
-            socket.broadcast.to(game_code).emit('join game lobby', user_name);
+            socket.to(game_code).broadcast.emit('join game lobby', user_name);
             socket.emit('users in room', getAllUsersInRoom(game_code));
             const user = userJoin(socket.id, user_name, game_code);
         } else {
-            // TODO: game doesnt exist
+            // TODO: if game doesnt exist
         }
     });
 });
@@ -56,7 +56,7 @@ function newGameId() {
         }
         
         if (!rooms.includes(result)) {
-            search = false
+            search = false;
             rooms.push(result);
             return result;
         }

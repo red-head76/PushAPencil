@@ -13,7 +13,6 @@ function createGame(event) {
     // get the username and clear the inut field
     var name_input = document.getElementById("name-input");
     var user_name = name_input.value;
-    name_input.value = "";
     
     // user name validation
     if (user_name.length < 3 || user_name.lengt > 25) {
