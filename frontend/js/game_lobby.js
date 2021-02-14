@@ -24,6 +24,10 @@ socket.on("join game lobby", function(user_name) {
     createUserNameInList(user_name);
 });
 
+socket.on("no game lobby", function() {
+    window.location.href = "index.html?user-name=" + user_name + "&game-code=" + game_code;
+});
+
 function load() {
     // try to get the game code from url to see if the player wants to create or join a room
     if (game_code) {

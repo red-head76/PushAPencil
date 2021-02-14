@@ -16,7 +16,14 @@ function getAllUsersInRoom(game_code) {
     return users.filter(user => user.room === game_code);
 }
 
+function userLeave(id) {
+    const user = users.find(user => user.id === id);
+    const index = users.indexOf(user);
+    users.splice(index, 1);
+}
+
 module.exports = {
     userJoin, 
     getAllUsersInRoom,
+    userLeave,
 }

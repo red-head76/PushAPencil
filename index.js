@@ -1,8 +1,8 @@
-const path = require('path');
+ const path = require('path');
 const http = require('http');
 const express = require('express');
 const socket = require('socket.io');
-const { userJoin, getAllUsersInRoom } = require('./utils/users');
+const { userJoin, getAllUsersInRoom, userLeave } = require('./utils/users');
 
 const app = express();
 const server = http.createServer(app);
@@ -17,7 +17,8 @@ app.use(express.static(path.join(__dirname, 'frontend')));
 
 // listen o connection event, this occures every time a new user connects
 // to the website
-io.on('connection', function (socket, name) {
+io.on('connection', function (socket) {
+    // TODO prevent on reload game lobby
     socket.on('new game lobby', function(user_name) {
         const game_code = newGameId();
         const user = userJoin(socket.id, user_name, game_code);
@@ -38,8 +39,13 @@ io.on('connection', function (socket, name) {
             socket.emit('users in room', getAllUsersInRoom(game_code));
             const user = userJoin(socket.id, user_name, game_code);
         } else {
-            // TODO: if game doesnt exist
+            socket.emit('no game lobby');
         }
+    });
+    
+    socket.on('disconnect', function() {
+        // TODO only make this on disconnect from lobby
+        userLeave(socket.id);
     });
 });
 

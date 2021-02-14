@@ -1,5 +1,7 @@
 const socket = io()
 
+window.addEventListener("load", load);
+
 const create_game_button = document.getElementById("create-btn");
 create_game_button.addEventListener("click", createGame);
 
@@ -125,5 +127,34 @@ function joinGame(event) {
         }
     } else {
         window.location.href = this.href + "?user-name=" + user_name + "&game-code=" + game_code;
+    }
+}
+
+
+function load () {
+    const url = new URL(window.location.href);
+    const user_name = url.searchParams.get("user-name");
+    const game_code = url.searchParams.get("game-code");
+    
+    if (game_code) {
+        const name_input = document.getElementById("name-input");
+        const game_code_input = document.getElementById("game-code-input");
+        
+        name_input.value = user_name;
+        game_code_input.value = game_code;
+        
+        // make came code input red
+        if (!document.getElementById("invalid-game-code-input")) {
+            game_code_input.classList.add("is-invalid");
+            
+            const invalid_name_text = document.createTextNode("this room does not exist");
+            const label = document.createElement("label");
+            label.className = "form-label text-danger";
+            label.id = "invalid-game-code-input";
+            label.appendChild(invalid_name_text);
+            
+            const game_code_input_box = document.getElementById("game-code-input-box");
+            game_code_input_box.appendChild(label);
+        }        
     }
 }
