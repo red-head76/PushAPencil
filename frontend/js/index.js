@@ -50,6 +50,12 @@ function joinGame(event) {
     
     // user name validation
     if (user_name.length < 3 || user_name.lengt > 25) {
+        if (game_code.length == 6) {
+            const game_code_input_box = document.getElementById("game-code-input-box");
+            const invalid_game_code = document.getElementById("invalid-game-code-input");
+            game_code_input_box.removeChild(invalid_game_code);
+            game_code_input.classList.remove("is-invalid");
+        }        
         if (!document.getElementById("invalid-name-input")) {
             name_input.classList.add("is-invalid");
             
@@ -63,6 +69,12 @@ function joinGame(event) {
             name_input_box.appendChild(label);
         }
     } else if (game_code.length !== 6) {
+        if (document.getElementById("invalid-name-input")) {
+            const name_input_box = document.getElementById("name-input-box");
+            const invalid_name = document.getElementById("invalid-name-input");
+            name_input_box.removeChild(invalid_name);
+            name_input.classList.remove("is-invalid");
+        }
         if (!document.getElementById("invalid-game-code-input")) {
             game_code_input.classList.add("is-invalid");
             
