@@ -43,6 +43,10 @@ io.on('connection', function (socket) {
         }
     });
     
+    socket.on("game start", function(game_code) {
+        socket.to(game_code).broadcast.emit("game start");
+    });
+    
     socket.on('disconnect', function() {
         game_code = getGameCode(socket.id);
         userLeave(socket.id);
