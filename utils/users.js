@@ -22,8 +22,14 @@ function userLeave(id) {
     users.splice(index, 1);
 }
 
+function getGameCode(id) {
+    const user = users.find(user => user.id === id);
+    return user.room;
+}
+
 module.exports = {
     userJoin, 
     getAllUsersInRoom,
     userLeave,
+    getGameCode,
 }

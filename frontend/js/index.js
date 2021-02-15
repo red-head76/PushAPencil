@@ -1,5 +1,3 @@
-const socket = io()
-
 window.addEventListener("load", load);
 
 const create_game_button = document.getElementById("create-btn");

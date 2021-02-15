@@ -2,7 +2,7 @@
 const http = require('http');
 const express = require('express');
 const socket = require('socket.io');
-const { userJoin, getAllUsersInRoom, userLeave } = require('./utils/users');
+const { userJoin, getAllUsersInRoom, userLeave, getGameCode } = require('./utils/users');
 
 const app = express();
 const server = http.createServer(app);
@@ -18,7 +18,7 @@ app.use(express.static(path.join(__dirname, 'frontend')));
 // listen o connection event, this occures every time a new user connects
 // to the website
 io.on('connection', function (socket) {
-    // TODO prevent on reload game lobby
+    // TODO prevent changing game code on reload game lobby
     socket.on('new game lobby', function(user_name) {
         const game_code = newGameId();
         const user = userJoin(socket.id, user_name, game_code);
@@ -44,8 +44,9 @@ io.on('connection', function (socket) {
     });
     
     socket.on('disconnect', function() {
-        // TODO only make this on disconnect from lobby
+        game_code = getGameCode(socket.id);
         userLeave(socket.id);
+        socket.to(game_code).broadcast.emit('user leave', getAllUsersInRoom(game_code));
     });
 });
 

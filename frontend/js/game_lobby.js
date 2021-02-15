@@ -6,6 +6,8 @@ const url = new URL(window.location.href);
 const user_name = url.searchParams.get("user-name");
 const game_code = url.searchParams.get("game-code");
     
+var game_started = false;
+
 socket.on("new game lobby", function(game_code) {
     // gets a new game code from the server and prints it to screen
     const game_code_span = document.getElementById("game-code");
@@ -26,6 +28,14 @@ socket.on("join game lobby", function(user_name) {
 
 socket.on("no game lobby", function() {
     window.location.href = "index.html?user-name=" + user_name + "&game-code=" + game_code;
+});
+
+socket.on("user leave", function(remaining_users) {
+    const user_list = document.getElementById("users");
+    while (user_list.firstChild) {
+        user_list.removeChild(user_list.firstChild);
+    }
+    remaining_users.forEach(user => createUserNameInList(user.user_name));
 });
 
 function load() {
