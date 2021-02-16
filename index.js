@@ -1,8 +1,9 @@
- const path = require('path');
+const path = require('path');
 const http = require('http');
 const express = require('express');
 const socket = require('socket.io');
 const { userJoin, getAllUsersInRoom, userLeave, getGameCode } = require('./utils/users');
+const { newGameId, gameExists, newInGameRoom, nextPlayer } = require('./utils/rooms');
 
 const app = express();
 const server = http.createServer(app);
@@ -10,7 +11,7 @@ const io = socket(server);
 
 const PORT = process.env.PORT || 5000;
 
-const rooms = [];
+const in_game_rooms = [];
 
 // set the path to frontend folder
 app.use(express.static(path.join(__dirname, 'frontend')));
@@ -33,7 +34,7 @@ io.on('connection', function (socket) {
     });
     
     socket.on('join game lobby', function(game_code, user_name) {
-        if (rooms.includes(game_code)) {
+        if (gameExists(game_code)) {
             socket.join(game_code);
             socket.to(game_code).broadcast.emit('join game lobby', user_name);
             socket.emit('users in room', getAllUsersInRoom(game_code));
@@ -43,8 +44,14 @@ io.on('connection', function (socket) {
         }
     });
     
+    socket.on("starting phrase", function(starting_phrase, game_code) {
+        socket.to(nextPlayer(socket.id, game_code).id).emit("starting phrase", starting_phrase);
+    });
+    
     socket.on("game start", function(game_code) {
         socket.to(game_code).broadcast.emit("game start");
+        const player_list = getAllUsersInRoom(game_code);
+        const in_game_room = newInGameRoom(game_code, player_list);
     });
     
     socket.on('disconnect', function() {
@@ -53,25 +60,5 @@ io.on('connection', function (socket) {
         socket.to(game_code).broadcast.emit('user leave', getAllUsersInRoom(game_code));
     });
 });
-
-function newGameId() {
-    // TODO: prevent a runtimererror if all or the majority of rooms is full
-    var search = true;
-    
-    while (search) {
-        var result = '';
-        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-        const charactersLength = characters.length;
-        for ( var i = 0; i < 6; i++ ) {
-            result += characters.charAt(Math.floor(Math.random() * charactersLength));
-        }
-        
-        if (!rooms.includes(result)) {
-            search = false;
-            rooms.push(result);
-            return result;
-        }
-    }
-}
 
 server.listen(PORT);
