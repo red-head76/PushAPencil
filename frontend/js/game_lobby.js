@@ -108,6 +108,17 @@ socket.on("starting phrase", function(starting_phrase) {
     }
 });
 
+socket.on("drawing", function(drawing) {
+    if (is_waiting) {
+            makeDescribeScreen(drawing);
+            is_waiting = false;
+    } else {
+        task = "describe";
+        next_task = { task, drawing };
+        tasks.push(next_task);
+    }
+});
+
 // in game functions
 // __________________________________________________________________________________________________________
 
@@ -131,6 +142,7 @@ function startGame() {
 function startWithDrawing() {
     
     const starting_phrase = document.getElementById("starting-phrase-input").value;
+    // TODO input validation 5 < length < 50???, only a-z, 1-9, and ' ', (&/()[]) ???
     socket.emit("starting phrase", starting_phrase, game_code);
 
     if (tasks.length > 0) {
@@ -145,15 +157,16 @@ function startWithDrawing() {
 
 function continueWithDrawing() {
     
-    if (game_state === "lobby") {
-        const starting_phrase = document.getElementById("starting-phrase-input").value;
-        // TODO input validation 5 < length < 50???, only a-z, 1-9, and ' ', (&/()[]) ???
-        socket.emit("starting phrase", starting_phrase);
-    }
+    const starting_phrase = document.getElementById("describtion-input").value;
+    document.getElementById("describtion-input").value = "";
+    const image_to_describe_div = document.getElementById("image-to-describe");
+    image_to_describe_div.innerHTML = "";
+    
+    socket.emit("starting phrase", starting_phrase, game_code);
     
     // TODO counter for game length and Game end
     if (tasks.length > 0) {
-        makeDrawScreen();
+        makeDrawScreen(tasks.pop().starting_phrase);
         game_state = "draw";
     } else {
         is_waiting = true;
@@ -164,8 +177,14 @@ function continueWithDrawing() {
 
 function continueWithDescribing() {
     
+    const to_draw = document.getElementById("to-draw");
+    to_draw.innerHTML = "";
+    
+    const drawing = canvas.toDataURL();
+    socket.emit("drawing", drawing, game_code);    
+    
     if (tasks.length > 0) {
-        makeDescribeScreen();
+        makeDescribeScreen(tasks.pop().drawing);
         game_state = "describe";
     } else {
         is_waiting = true;
@@ -201,11 +220,17 @@ function makeDrawScreen(phrase) {
     initDrawingTool();
 }
 
-function makeDescribeScreen() {
+function makeDescribeScreen(drawing) {
     describe_div.style.display = "";
     game_lobby_div.style.display = "none";
     draw_div.style.display = "none";
     starting_phrase_div.style.display = "none";
+    
+    const picture = document.createElement("img");
+    picture.src = drawing;
+    picture.style.width = "50%";
+    const image_to_describe_div = document.getElementById("image-to-describe");
+    image_to_describe_div.appendChild(picture);
 }
 
 function makeWaitScreen() {
@@ -324,7 +349,6 @@ function beginLine(e) {
 }
 
 function drawLine(e) {
-    console.log(mode);
     if (mode === 'pencil' || mode === 'rubber') {
         if (e.buttons !== 1) return;
 

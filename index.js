@@ -48,6 +48,10 @@ io.on('connection', function (socket) {
         socket.to(nextPlayer(socket.id, game_code).id).emit("starting phrase", starting_phrase);
     });
     
+    socket.on("drawing", function(drawing, game_code) {
+        socket.to(nextPlayer(socket.id, game_code).id).emit("drawing", drawing);
+    });
+    
     socket.on("game start", function(game_code) {
         socket.to(game_code).broadcast.emit("game start");
         const player_list = getAllUsersInRoom(game_code);
