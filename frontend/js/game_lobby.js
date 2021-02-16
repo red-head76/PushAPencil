@@ -4,7 +4,7 @@ window.addEventListener("load", load);
 
 const url = new URL(window.location.href);
 const user_name = url.searchParams.get("user-name");
-const game_code = url.searchParams.get("game-code");
+var game_code = url.searchParams.get("game-code");
 
 // divs to switch between for differen game states
 const game_lobby_div = document.getElementById("game-lobby-div");        
@@ -17,19 +17,14 @@ var is_waiting = false;
 var game_state = "lobby";  // one of lobby, start, draw, describe
 const tasks = [];
 
-const start_btn = document.getElementById("start-btn");
-start_btn.addEventListener("click", function() {
-    socket.emit("game start", game_code);
-    startGame();
-});
-
 // server communication in user lobby
 // _______________________________________________________________________________________________
-socket.on("new game lobby", function(game_code) {
+socket.on("new game lobby", function(new_game_code) {
     // gets a new game code from the server and prints it to screen
     const game_code_span = document.getElementById("game-code");
-    const code = document.createTextNode(game_code);
-    game_code_span.appendChild(code);    
+    const code = document.createTextNode(new_game_code);
+    game_code_span.appendChild(code);
+    game_code = new_game_code;
 });
 
 socket.on("users in room", function(users) {
@@ -95,13 +90,32 @@ function createUserNameInList(user_name) {
 // server communication in game
 // __________________________________________________________________________________________________________
 
-socket.on("game start", startGame);
+socket.on("game start", function() {
+    game_state = "start";
+    makeCreatePhraseScreen();
+});
+
+socket.on("starting phrase", function(starting_phrase) {
+    console.log("starting phrase resived");
+    if (is_waiting) {
+            makeDrawScreen();
+            // TODO draw right starting phrase
+            is_waiting = false;
+    } else {
+        task = "draw";
+        next_task = { task, starting_phrase };
+        tasks.push(next_task);
+    }
+});
 
 // in game functions
 // __________________________________________________________________________________________________________
 
+const start_btn = document.getElementById("start-btn");
+start_btn.addEventListener("click", startGame);
+
 const continue_btn = document.getElementById("continue-btn");
-continue_btn.addEventListener("click", continueWithDrawing);
+continue_btn.addEventListener("click", startWithDrawing);
 
 const submit_drawing_btn = document.getElementById("submit");
 submit_drawing_btn.addEventListener("click", continueWithDescribing);
@@ -110,11 +124,37 @@ const submit_describtion_btn = document.getElementById("submit-describtion-btn")
 submit_describtion_btn.addEventListener("click", continueWithDrawing);
 
 function startGame() {
-    game_state = "start";
+    socket.emit("game start", game_code);
     makeCreatePhraseScreen();
 }
 
+function startWithDrawing() {
+    
+    const starting_phrase = document.getElementById("starting-phrase-input").value;
+    socket.emit("starting phrase", starting_phrase, game_code);
+    
+    console.log(tasks);
+    
+    if (tasks.length > 0) {
+        makeDrawScreen();
+        // TODO delete task and print it
+        const phrase = tasks.pop().starting_phrase
+        game_state = "draw";
+    } else {
+        is_waiting = true;
+        game_state = "draw";
+        makeWaitScreen();
+    }
+}
+
 function continueWithDrawing() {
+    
+    if (game_state === "lobby") {
+        const starting_phrase = document.getElementById("starting-phrase-input").value;
+        // TODO input validation 5 < length < 50???, only a-z, 1-9, and ' ', (&/()[]) ???
+        socket.emit("starting phrase", starting_phrase);
+    }
+    
     // TODO counter for game length and Game end
     if (tasks.length > 0) {
         makeDrawScreen();
@@ -167,13 +207,10 @@ function makeDescribeScreen() {
 }
 
 function makeWaitScreen() {
-    // TODO move this to a socket.on listening on get task event
-    is_waiting = false;
-    if (game_state === "draw") {
-        makeDrawScreen();
-    } else if (game_state === "describe") {
-        makeDescribeScreen();
-    }
+    describe_div.style.display = "none";
+    game_lobby_div.style.display = "none";
+    draw_div.style.display = "none";
+    starting_phrase_div.style.display = "none";
 }
 
 // draw to canvas funcitons
@@ -184,7 +221,7 @@ var ctx = canvas.getContext('2d');
 
 // last known position
 var pos = { x: 0, y: 0 };
-var rect = canvas.getBoundingClientRect();
+var rect;
 var offset_x;
 var offset_y;
 
@@ -205,9 +242,11 @@ function clearAll() {
     ctx.lineWidth = "5";
     ctx.lineCap = "round";
     mode = 'pencil'; // pencil, fill
-    background_color = 'white';
-    ctx.strokeStyle = "white";
-    fillBackground();
+  
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    background_color = "white";
+    
     ctx.strokeStyle = "black";
     last_color = 'black';
 
@@ -232,6 +271,8 @@ function initDrawingTool() {
     ctx.lineWidth = "5";
     ctx.strokeStyle = "black";
     ctx.lineCap = "round";
+    
+    rect = canvas.getBoundingClientRect();
     offset_x = rect.left;
     offset_y = rect.top;
 
