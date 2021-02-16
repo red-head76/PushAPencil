@@ -8,8 +8,9 @@ var offset_x;
 var offset_y;
 
 var mode = 'pencil'; // pencil, fill
-var background_color = '#000000'; // Black, not really true, but background filling tool works then
+var background_color = '#ffffff'; // White
 var last_color = '#000000';     // Black
+
 
 window.addEventListener('load', load);
 window.addEventListener('resize', resize);
@@ -25,16 +26,14 @@ function clearAll() {
     ctx.lineCap = "round";
     mode = 'pencil'; // pencil, fill
     background_color = 'white';
-    ctx.strokeStyle = "white";
-    fillBackground();
     ctx.strokeStyle = "black";
     last_color = 'black';
-
     pencil.style.fill = 'gray';
     rubber.style.fill = 'white';
     background.style.fill = 'white';
     fill.style.fill = 'white';
-
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
     show_color.style.fill = 'black';
 }
 
@@ -68,14 +67,16 @@ function getY(e) { return (e.clientY - Math.floor(offset_y)); }
 function fillBackground() {
     // Fills the canvas at every pixel that matches the old background color
     colorLayer = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    var old_Bkg_Color_RGB = HEXtoRGB(background_color);
+    const old_Bkg_Color = HEXtoRGBA(background_color);
+    console.log("old background:", old_Bkg_Color);
     background_color = ctx.strokeStyle;
-    var new_Bkg_Color_RGB = HEXtoRGB(background_color);
+    const new_Bkg_Color = HEXtoRGBA(background_color);
+    console.log("new background:", new_Bkg_Color);
 
     for (var x = 0; x < canvas.width; x++) {
         for (var y = 0; y < canvas.height; y++) {
-            if (checkColorMatch(colorLayer, x, y, old_Bkg_Color_RGB)) {
-                colorPixel(colorLayer, x, y, new_Bkg_Color_RGB);
+            if (checkColorMatch(colorLayer, x, y, old_Bkg_Color)) {
+                colorPixel(colorLayer, x, y, new_Bkg_Color);
             }
         }
     }
@@ -84,7 +85,6 @@ function fillBackground() {
 
 // new position from mouse event
 function beginLine(e) {
-
     if (mode == 'pencil' || mode == 'rubber') {
         if (e.button == 1) {
             fillBackground()
@@ -125,21 +125,29 @@ function endLine(e) {
     }
 }
 
+function tweezerTool(e) {
+    const colorLayer = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const startColor = getPixelColor(colorLayer, getX(e), getY(e));
+    console.log("R:", startColor[0]);
+    console.log("G:", startColor[1]);
+    console.log("B:", startColor[2]);
+    console.log("Alpha:", startColor[3]);
+    console.log(Math.min.apply(Math, startColor))
+}
+
+
 // bucket tool (fill tool) from
 // http://www.williammalone.com/articles/html5-canvas-javascript-paint-bucket-tool/
 function bucketTool(e) {
     var colorLayer = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    var startX = getX(e);
-    var startY = getY(e);
+    const startX = getX(e);
+    const startY = getY(e);
     var pixelStack = [[startX, startY]];
-    var startPixelPos = calcPixelPos(startX, startY)
-    var StartColor = [colorLayer.data[startPixelPos], colorLayer.data[startPixelPos+1],
-                  colorLayer.data[startPixelPos+2], colorLayer.data[startPixelPos+3]];
-    var FillColor = HEXtoRGB(ctx.strokeStyle);
+    const StartColor = getPixelColor(colorLayer, startX, startY);
+    const FillColor = HEXtoRGBA(ctx.strokeStyle);
     var newPos, x, y, reachLeft, reachRight;
 
-    if (StartColor[0] !== FillColor[0] || StartColor[1] !== FillColor[1] ||
-        StartColor[2] !== FillColor[2]) {
+    if (!equals(StartColor, FillColor)) {
         while (pixelStack.length) {
             newPos = pixelStack.pop();
             x = newPos[0];
@@ -277,34 +285,50 @@ big_pencil.addEventListener('click', function(event) {
 
 // _____________________________________________________________________________
 // Helper functions
+// Array comparison
+const equals = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+
 // converting x, y coordinates into 1d position
-function calcPixelPos(x, y) {
+function getPixelPos(x, y) {
     return ((y * canvas.width + x) * 4);
+}
+
+// Return color (RGBA) at pixel position
+function getPixelColor(colorLayer, x, y) {
+    const pixelPos = getPixelPos(x, y);
+    const color = [colorLayer.data[pixelPos], colorLayer.data[pixelPos+1],
+                   colorLayer.data[pixelPos+2], colorLayer.data[pixelPos+3]];
+    if (equals(color, [0, 0, 0, 0])) {
+        return [255, 255, 255, 255];
+    } else {
+        return color;
+    }
 }
 
 // checks if the color at x, y matches the desired color
 function checkColorMatch(colorLayer, x, y, matchColor) {
-    pixelPos = calcPixelPos(x, y);
-    return (colorLayer.data[pixelPos] == matchColor[0] &&
-            colorLayer.data[pixelPos + 1]== matchColor[1] &&
-            colorLayer.data[pixelPos + 2] == matchColor[2]);
+    pixelColor = getPixelColor(colorLayer, x, y);
+    return equals(pixelColor, matchColor);
+    // return (colorLayer.data[pixelPos] == matchColor[0] &&
+    //         colorLayer.data[pixelPos + 1]== matchColor[1] &&
+    //         colorLayer.data[pixelPos + 2] == matchColor[2]);
 }
 
-// transforms hex color (string) into RGB (list) values
-function HEXtoRGB(hex) {
+// transforms hex color (string) into RGBA (list) values
+function HEXtoRGBA(hex) {
     hex = hex.replace(/#/g, '');
     if (hex.length === 3) {
         hex = hex.split('').map(function (hex) {
             return hex + hex;
         }).join('');
     }
-    var result = /^([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})[\da-z]{0,0}$/i.exec(hex);
+    const result = /^([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})[\da-z]{0,0}$/i.exec(hex);
     if (result) {
-        var red = parseInt(result[1], 16);
-        var green = parseInt(result[2], 16);
-        var blue = parseInt(result[3], 16);
+        const red = parseInt(result[1], 16);
+        const green = parseInt(result[2], 16);
+        const blue = parseInt(result[3], 16);
 
-        return [red, green, blue];
+        return [red, green, blue, 255]; // just return full alpha (255) everywhere
     } else {
         return null;
     }
@@ -312,7 +336,7 @@ function HEXtoRGB(hex) {
 
 // changes the value (color) in a colorLayer to a desired color
 function colorPixel(colorLayer, x, y, newColor) {
-    pixelPos = calcPixelPos(x, y);
+    pixelPos = getPixelPos(x, y);
     colorLayer.data[pixelPos] = newColor[0];
     colorLayer.data[pixelPos+1] = newColor[1];
     colorLayer.data[pixelPos+2] = newColor[2];
