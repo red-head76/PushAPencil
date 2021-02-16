@@ -56,6 +56,7 @@ socket.on("user leave", function(remaining_users) {
 // ________________________________________________________________________________________________
 function load() {
     
+    // TODO load screens for different game states, but persistend socket.id required
     if (game_state === "lobby") {
         
         makeGameLobbyScreen ()
@@ -91,15 +92,14 @@ function createUserNameInList(user_name) {
 // __________________________________________________________________________________________________________
 
 socket.on("game start", function() {
+    // TODO require min user number
     game_state = "start";
     makeCreatePhraseScreen();
 });
 
 socket.on("starting phrase", function(starting_phrase) {
-    console.log("starting phrase resived");
     if (is_waiting) {
-            makeDrawScreen();
-            // TODO draw right starting phrase
+            makeDrawScreen(starting_phrase);
             is_waiting = false;
     } else {
         task = "draw";
@@ -132,13 +132,9 @@ function startWithDrawing() {
     
     const starting_phrase = document.getElementById("starting-phrase-input").value;
     socket.emit("starting phrase", starting_phrase, game_code);
-    
-    console.log(tasks);
-    
+
     if (tasks.length > 0) {
-        makeDrawScreen();
-        // TODO delete task and print it
-        const phrase = tasks.pop().starting_phrase
+        makeDrawScreen(tasks.pop().starting_phrase);
         game_state = "draw";
     } else {
         is_waiting = true;
@@ -167,6 +163,7 @@ function continueWithDrawing() {
 }
 
 function continueWithDescribing() {
+    
     if (tasks.length > 0) {
         makeDescribeScreen();
         game_state = "describe";
@@ -191,11 +188,16 @@ function makeCreatePhraseScreen() {
     starting_phrase_div.style.display = "";
 }
 
-function makeDrawScreen() {
+function makeDrawScreen(phrase) {
     describe_div.style.display = "none";
     starting_phrase_div.style.display = "none";
     draw_div.style.display = "";
     game_lobby_div.style.display = "none";
+    
+    const to_draw = document.getElementById("to-draw");
+    const text_node = document.createTextNode(phrase);
+    to_draw.appendChild(text_node);
+    
     initDrawingTool();
 }
 
