@@ -6,9 +6,11 @@ const url = new URL(window.location.href);
 const user_name = url.searchParams.get("user-name");
 const game_code = url.searchParams.get("game-code");
 
+// divs to switch between for differen game states
 const game_lobby_div = document.getElementById("game-lobby-div");        
 const draw_div = document.getElementById("draw-div");
 const starting_phrase_div = document.getElementById("starting-phrase-div");
+const describe_div = document.getElementById("describe-div");
         
 // to handle disconnects different if the game has game has started
 var is_waiting = false;
@@ -61,8 +63,7 @@ function load() {
     
     if (game_state === "lobby") {
         
-        starting_phrase_div.style.display = "none";
-        draw_div.style.display = "none";
+        makeGameLobbyScreen ()
         
         // try to get the game code from url to see if the player wants to create or join a room
         if (game_code) {
@@ -102,12 +103,19 @@ socket.on("game start", startGame);
 const continue_btn = document.getElementById("continue-btn");
 continue_btn.addEventListener("click", continueWithDrawing);
 
+const submit_drawing_btn = document.getElementById("submit");
+submit_drawing_btn.addEventListener("click", continueWithDescribing);
+
+const submit_describtion_btn = document.getElementById("submit-describtion-btn");
+submit_describtion_btn.addEventListener("click", continueWithDrawing);
+
 function startGame() {
     game_state = "start";
     makeCreatePhraseScreen();
 }
 
 function continueWithDrawing() {
+    // TODO counter for game length and Game end
     if (tasks.length > 0) {
         makeDrawScreen();
         game_state = "draw";
@@ -118,23 +126,54 @@ function continueWithDrawing() {
     }
 }
 
+function continueWithDescribing() {
+    if (tasks.length > 0) {
+        makeDescribeScreen();
+        game_state = "describe";
+    } else {
+        is_waiting = true;
+        game_state = "describe";
+        makeWaitScreen();
+    }
+}
+
+function makeGameLobbyScreen () {
+    starting_phrase_div.style.display = "none";
+    describe_div.style.display = "none";
+    draw_div.style.display = "none";
+    game_lobby_div.style.display = "";
+}
+
 function makeCreatePhraseScreen() {
+    describe_div.style.display = "none";
     game_lobby_div.style.display = "none";
+    draw_div.style.display = "none";
     starting_phrase_div.style.display = "";
 }
 
 function makeDrawScreen() {
+    describe_div.style.display = "none";
     starting_phrase_div.style.display = "none";
     draw_div.style.display = "";
+    game_lobby_div.style.display = "none";
+    initDrawingTool();
 }
 
 function makeDescribeScreen() {
-    console.log("describe screen");
+    describe_div.style.display = "";
+    game_lobby_div.style.display = "none";
+    draw_div.style.display = "none";
+    starting_phrase_div.style.display = "none";
 }
 
 function makeWaitScreen() {
     // TODO move this to a socket.on listening on get task event
-    makeDrawScreen();
+    is_waiting = false;
+    if (game_state === "draw") {
+        makeDrawScreen();
+    } else if (game_state === "describe") {
+        makeDescribeScreen();
+    }
 }
 
 // draw to canvas funcitons
@@ -153,7 +192,7 @@ var mode = 'pencil'; // pencil, fill
 var background_color = '#000000'; // Black, not really true, but background filling tool works then
 var last_color = '#000000';     // Black
 
-window.addEventListener('load', load);
+// window.addEventListener('load', load);
 window.addEventListener('resize', resize);
 canvas.addEventListener('mousemove', drawLine);
 canvas.addEventListener('mousedown', beginLine);
@@ -186,7 +225,7 @@ function resize() {
     canvas.height = window.innerHeight;
 }
 
-function load() {
+function initDrawingTool() {
     canvas.width = window.innerWidth * 0.6;
     canvas.height = window.innerHeight;
     medium_pencil.style.fill = 'gray';
@@ -226,8 +265,7 @@ function fillBackground() {
 
 // new position from mouse event
 function beginLine(e) {
-
-    if (mode == 'pencil' || mode == 'rubber') {
+    if (mode === 'pencil' || mode === 'rubber') {
         if (e.button == 1) {
             fillBackground()
         } else {
@@ -237,13 +275,14 @@ function beginLine(e) {
             ctx.beginPath();
             ctx.moveTo(pos.x, pos.y);
         }
-    } else if (mode == 'fill') {
+    } else if (mode === 'fill') {
         bucketTool(e);
     }
 }
 
 function drawLine(e) {
-    if (mode == 'pencil' || mode == 'rubber') {
+    console.log(mode);
+    if (mode === 'pencil' || mode === 'rubber') {
         if (e.buttons !== 1) return;
 
         pos.x = getX(e);
@@ -256,7 +295,7 @@ function drawLine(e) {
 }
 
 function endLine(e) {
-    if (mode == 'pencil' || mode == 'rubber') {
+    if (mode === 'pencil' || mode === 'rubber') {
         if (e.button !== 1) {
             pos.x = getX(e);
             pos.y = getY(e);
