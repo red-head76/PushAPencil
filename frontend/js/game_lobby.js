@@ -269,7 +269,7 @@ function clearAll() {
     ctx.lineWidth = "5";
     ctx.lineCap = "round";
     mode = 'pencil'; // pencil, fill
-    background_color = 'white';
+    background_color = '#ffffff';
     ctx.strokeStyle = "black";
     last_color = 'black';
     pencil.style.fill = 'gray';
@@ -315,11 +315,12 @@ function fillBackground() {
     background_color = ctx.strokeStyle;
     const new_Bkg_Color = HEXtoRGBA(background_color);
     console.log("new background:", new_Bkg_Color);
-
-    for (var x = 0; x < canvas.width; x++) {
-        for (var y = 0; y < canvas.height; y++) {
-            if (checkColorMatch(colorLayer, x, y, old_Bkg_Color)) {
-                colorPixel(colorLayer, x, y, new_Bkg_Color);
+    if (!equals(old_Bkg_Color, new_Bkg_Color)) {
+        for (var x = 0; x < canvas.width; x++) {
+            for (var y = 0; y < canvas.height; y++) {
+                if (checkColorMatch(colorLayer, x, y, old_Bkg_Color)) {
+                    colorPixel(colorLayer, x, y, new_Bkg_Color);
+                }
             }
         }
     }
