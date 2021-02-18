@@ -1,5 +1,8 @@
 // TODO make database
 
+// TODO merge in game rooms to rooms, and keep players up to date
+// rooms = [romm1, ... roomN]: 
+// room = {game_code, in_game, player_list} 
 const rooms = [];
 const in_game_rooms = [];
 
@@ -27,6 +30,13 @@ function gameExists(game_code) {
     return rooms.includes(game_code);
 }
 
+function roomInGame(game_code) {
+    if (in_game_rooms.find(room => room.game_code === game_code)) {
+        return true;
+    }
+    return false;
+}
+
 function newInGameRoom(game_code, player_list) {
     // TODO shuffle player list
     if (gameExists(game_code)) {
@@ -52,4 +62,5 @@ module.exports = {
     gameExists,
     newInGameRoom,
     nextPlayer,
+    roomInGame,
 }

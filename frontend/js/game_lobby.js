@@ -97,25 +97,23 @@ socket.on("game start", function() {
     makeCreatePhraseScreen();
 });
 
-socket.on("starting phrase", function(starting_phrase) {
-    if (is_waiting) {
-            makeDrawScreen(starting_phrase);
-            is_waiting = false;
+socket.on("next task", function(type, task) {
+    if (type === "describe") {
+        if (is_waiting) {
+                makeDrawScreen(task);
+                is_waiting = false;
+        } else {
+            next_task = { type, task };
+            tasks.push(next_task);
+        }        
     } else {
-        task = "draw";
-        next_task = { task, starting_phrase };
-        tasks.push(next_task);
-    }
-});
-
-socket.on("drawing", function(drawing) {
-    if (is_waiting) {
-            makeDescribeScreen(drawing);
-            is_waiting = false;
-    } else {
-        task = "describe";
-        next_task = { task, drawing };
-        tasks.push(next_task);
+        if (is_waiting) {
+                makeDescribeScreen(task);
+                is_waiting = false;
+        } else {
+            next_task = { type, task };
+            tasks.push(next_task);
+        }
     }
 });
 
@@ -126,7 +124,7 @@ const start_btn = document.getElementById("start-btn");
 start_btn.addEventListener("click", startGame);
 
 const continue_btn = document.getElementById("continue-btn");
-continue_btn.addEventListener("click", startWithDrawing);
+continue_btn.addEventListener("click", continueWithDrawing);
 
 const submit_drawing_btn = document.getElementById("submit");
 submit_drawing_btn.addEventListener("click", continueWithDescribing);
@@ -137,40 +135,31 @@ submit_describtion_btn.addEventListener("click", continueWithDrawing);
 function startGame() {
     socket.emit("game start", game_code);
     makeCreatePhraseScreen();
-}
-
-function startWithDrawing() {
-
-    const starting_phrase = document.getElementById("starting-phrase-input").value;
-    // TODO input validation 5 < length < 50???, only a-z, 1-9, and ' ', (&/()[]) ???
-    socket.emit("starting phrase", starting_phrase, game_code);
-
-    if (tasks.length > 0) {
-        makeDrawScreen(tasks.pop().starting_phrase);
-        game_state = "draw";
-    } else {
-        is_waiting = true;
-        game_state = "draw";
-        makeWaitScreen();
-    }
+    game_state = "start";
 }
 
 function continueWithDrawing() {
+    
+    var phrase;
+    
+    if (game_state === "start") {
+        phrase = document.getElementById("starting-phrase-input").value;
+    } else {
+        phrase = document.getElementById("describtion-input").value;
+        document.getElementById("describtion-input").value = "";
+        const image_to_describe_div = document.getElementById("image-to-describe");
+        image_to_describe_div.innerHTML = "";
+    }
 
-    const starting_phrase = document.getElementById("describtion-input").value;
-    document.getElementById("describtion-input").value = "";
-    const image_to_describe_div = document.getElementById("image-to-describe");
-    image_to_describe_div.innerHTML = "";
-
-    socket.emit("starting phrase", starting_phrase, game_code);
+    socket.emit("push task", "describe", phrase, game_code);
 
     // TODO counter for game length and Game end
     if (tasks.length > 0) {
-        makeDrawScreen(tasks.pop().starting_phrase);
+        makeDrawScreen(tasks.pop().task);
         game_state = "draw";
     } else {
         is_waiting = true;
-        game_state = 'draw';
+        game_state = "draw";
         makeWaitScreen();
     }
 }
@@ -181,10 +170,10 @@ function continueWithDescribing() {
     to_draw.innerHTML = "";
 
     const drawing = canvas.toDataURL();
-    socket.emit("drawing", drawing, game_code);
+    socket.emit("push task", "draw", drawing, game_code);
 
     if (tasks.length > 0) {
-        makeDescribeScreen(tasks.pop().drawing);
+        makeDescribeScreen(tasks.pop().task);
         game_state = "describe";
     } else {
         is_waiting = true;
@@ -245,7 +234,7 @@ function makeWaitScreen() {
 // ______________________________________________________________________________________________________
 
 var canvas = document.getElementById("myCanvas");
-var ctx = canvas.getContext('2d');
+var ctx = canvas.getContext("2d");
 
 // last known position
 var pos = { x: 0, y: 0 };
@@ -253,32 +242,32 @@ var rect = canvas.getBoundingClientRect();
 var offset_x;
 var offset_y;
 
-var mode = 'pencil'; // pencil, fill
-var background_color = '#ffffff'; // White
-var last_color = '#000000';     // Black
+var mode = "pencil"; // pencil, fill
+var background_color = "#ffffff"; // White
+var last_color = "#000000";     // Black
 
-window.addEventListener('resize', resize);
-canvas.addEventListener('mousemove', drawLine);
-canvas.addEventListener('mousedown', beginLine);
-canvas.addEventListener('mouseup', endLine);
+window.addEventListener("resize", resize);
+canvas.addEventListener("mousemove", drawLine);
+canvas.addEventListener("mousedown", beginLine);
+canvas.addEventListener("mouseup", endLine);
 
 function clearAll() {
-    small_pencil.style.fill = 'white';
-    medium_pencil.style.fill = 'gray';
-    big_pencil.style.fill = 'white';
+    small_pencil.style.fill = "white";
+    medium_pencil.style.fill = "gray";
+    big_pencil.style.fill = "white";
     ctx.lineWidth = "5";
     ctx.lineCap = "round";
-    mode = 'pencil'; // pencil, fill
-    background_color = '#ffffff';
+    mode = "pencil"; // pencil, fill
+    background_color = "#ffffff";
     ctx.strokeStyle = "black";
-    last_color = 'black';
-    pencil.style.fill = 'gray';
-    rubber.style.fill = 'white';
-    background.style.fill = 'white';
-    fill.style.fill = 'white';
-    ctx.fillStyle = 'white';
+    last_color = "black";
+    pencil.style.fill = "gray";
+    rubber.style.fill = "white";
+    background.style.fill = "white";
+    fill.style.fill = "white";
+    ctx.fillStyle = "white";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    show_color.style.fill = 'black';
+    show_color.style.fill = "black";
 }
 
 // resize canvas
@@ -290,7 +279,7 @@ function resize() {
 function initDrawingTool() {
     canvas.width = window.innerWidth * 0.6;
     canvas.height = window.innerHeight;
-    medium_pencil.style.fill = 'gray';
+    medium_pencil.style.fill = "gray";
     ctx.lineWidth = "5";
     ctx.strokeStyle = "black";
     ctx.lineCap = "round";
@@ -298,12 +287,12 @@ function initDrawingTool() {
     offset_x = rect.left;
     offset_y = rect.top;
 
-    pencil.style.fill = 'gray';
-    rubber.style.fill = 'white';
-    background.style.fill = 'white';
-    fill.style.fill = 'white';
+    pencil.style.fill = "gray";
+    rubber.style.fill = "white";
+    background.style.fill = "white";
+    fill.style.fill = "white";
 
-    show_color.style.fill = 'black';
+    show_color.style.fill = "black";
 }
 
 
@@ -329,7 +318,7 @@ function fillBackground() {
 
 // new position from mouse event
 function beginLine(e) {
-    if (mode == 'pencil' || mode == 'rubber') {
+    if (mode == "pencil" || mode == "rubber") {
         if (e.button == 1) {
             fillBackground()
         } else {
@@ -339,13 +328,13 @@ function beginLine(e) {
             ctx.beginPath();
             ctx.moveTo(pos.x, pos.y);
         }
-    } else if (mode == 'fill') {
+    } else if (mode == "fill") {
         bucketTool(e);
     }
 }
 
 function drawLine(e) {
-    if (mode == 'pencil' || mode == 'rubber') {
+    if (mode == "pencil" || mode == "rubber") {
         if (e.buttons !== 1) return;
 
         pos.x = getX(e);
@@ -358,7 +347,7 @@ function drawLine(e) {
 }
 
 function endLine(e) {
-    if (mode == 'pencil' || mode == 'rubber') {
+    if (mode == "pencil" || mode == "rubber") {
         if (e.button !== 1) {
             pos.x = getX(e);
             pos.y = getY(e);
@@ -436,19 +425,19 @@ function bucketTool(e) {
     }
 }
 
-var color_palette = document.getElementById('color_palette');
-var colors = color_palette.getElementsByTagName('path');
+var color_palette = document.getElementById("color_palette");
+var colors = color_palette.getElementsByTagName("path");
 var colors_array = Array.prototype.slice.call(colors);
-var show_color = document.getElementById('show-current-color');
+var show_color = document.getElementById("show-current-color");
 
 colors_array.forEach(function(color, index) {
-    color.addEventListener('click', function() {
-        if (color.id !== 'show-current-color') {
-            if (mode == 'pencil' || mode == 'fill') {
+    color.addEventListener("click", function() {
+        if (color.id !== "show-current-color") {
+            if (mode == "pencil" || mode == "fill") {
                 ctx.strokeStyle = color.style.fill;
                 last_color = ctx.strokeStyle;
                 show_color.style.fill = color.style.fill;
-            } else if (mode == 'background') {
+            } else if (mode == "background") {
                 ctx.strokeStyle = color.style.fill;
                 fillBackground();
                 ctx.strokeStyle = last_color;
@@ -457,74 +446,74 @@ colors_array.forEach(function(color, index) {
     });
 });
 
-var rubber = document.getElementById('rubber');
-rubber.addEventListener('click', function(event) {
+var rubber = document.getElementById("rubber");
+rubber.addEventListener("click", function(event) {
     last_color = ctx.strokeStyle;
     ctx.strokeStyle = background_color;
-    mode = 'rubber';
-    pencil.style.fill = 'white';
-    rubber.style.fill = 'gray';
-    background.style.fill = 'white';
-    fill.style.fill = 'white';
+    mode = "rubber";
+    pencil.style.fill = "white";
+    rubber.style.fill = "gray";
+    background.style.fill = "white";
+    fill.style.fill = "white";
 });
 
-var pencil = document.getElementById('pencil');
-pencil.addEventListener('click', function(event) {
+var pencil = document.getElementById("pencil");
+pencil.addEventListener("click", function(event) {
     ctx.strokeStyle = last_color;
-    mode = 'pencil';
-    pencil.style.fill = 'gray';
-    rubber.style.fill = 'white';
-    background.style.fill = 'white';
-    fill.style.fill = 'white';
+    mode = "pencil";
+    pencil.style.fill = "gray";
+    rubber.style.fill = "white";
+    background.style.fill = "white";
+    fill.style.fill = "white";
 });
 
-var fill = document.getElementById('fill');
-fill.addEventListener('click', function(event) {
+var fill = document.getElementById("fill");
+fill.addEventListener("click", function(event) {
     ctx.strokeStyle = last_color;
-    mode = 'fill'
-    pencil.style.fill = 'white';
-    rubber.style.fill = 'white';
-    background.style.fill = 'white';
-    fill.style.fill = 'gray';
+    mode = "fill"
+    pencil.style.fill = "white";
+    rubber.style.fill = "white";
+    background.style.fill = "white";
+    fill.style.fill = "gray";
 });
 
-var background = document.getElementById('background-btn');
-background.addEventListener('click', function(event) {
-    mode = 'background';
-    pencil.style.fill = 'white';
-    rubber.style.fill = 'white';
-    background.style.fill = 'gray';
-    fill.style.fill = 'white';
+var background = document.getElementById("background-btn");
+background.addEventListener("click", function(event) {
+    mode = "background";
+    pencil.style.fill = "white";
+    rubber.style.fill = "white";
+    background.style.fill = "gray";
+    fill.style.fill = "white";
 });
 
-var clear = document.getElementById('clear');
-clear.addEventListener('click', function(event) {
+var clear = document.getElementById("clear");
+clear.addEventListener("click", function(event) {
         clearAll()
 });
 
-var small_pencil = document.getElementById('small-pencil');
-var medium_pencil = document.getElementById('medium-pencil');
-var big_pencil = document.getElementById('big-pencil');
+var small_pencil = document.getElementById("small-pencil");
+var medium_pencil = document.getElementById("medium-pencil");
+var big_pencil = document.getElementById("big-pencil");
 
-small_pencil.addEventListener('click', function(event) {
+small_pencil.addEventListener("click", function(event) {
     ctx.lineWidth = "1";
-    small_pencil.style.fill = 'gray';
-    medium_pencil.style.fill = 'white';
-    big_pencil.style.fill = 'white';
+    small_pencil.style.fill = "gray";
+    medium_pencil.style.fill = "white";
+    big_pencil.style.fill = "white";
 });
 
-medium_pencil.addEventListener('click', function(event) {
+medium_pencil.addEventListener("click", function(event) {
     ctx.lineWidth = "5";
-    small_pencil.style.fill = 'white';
-    medium_pencil.style.fill = 'gray';
-    big_pencil.style.fill = 'white';
+    small_pencil.style.fill = "white";
+    medium_pencil.style.fill = "gray";
+    big_pencil.style.fill = "white";
 });
 
-big_pencil.addEventListener('click', function(event) {
+big_pencil.addEventListener("click", function(event) {
     ctx.lineWidth = "20";
-    small_pencil.style.fill = 'white';
-    medium_pencil.style.fill = 'white';
-    big_pencil.style.fill = 'gray';
+    small_pencil.style.fill = "white";
+    medium_pencil.style.fill = "white";
+    big_pencil.style.fill = "gray";
 });
 
 // _____________________________________________________________________________
@@ -566,11 +555,11 @@ function checkColorMatch(colorLayer, x, y, matchColor) {
 
 // transforms hex color (string) into RGBA (list) values
 function HEXtoRGBA(hex) {
-    hex = hex.replace(/#/g, '');
+    hex = hex.replace(/#/g, "");
     if (hex.length === 3) {
-        hex = hex.split('').map(function (hex) {
+        hex = hex.split("").map(function (hex) {
             return hex + hex;
-        }).join('');
+        }).join("");
     }
     const result = /^([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})[\da-z]{0,0}$/i.exec(hex);
     if (result) {

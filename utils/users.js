@@ -16,6 +16,10 @@ function getAllUsersInRoom(game_code) {
     return users.filter(user => user.room === game_code);
 }
 
+function userExists(id) {
+    return users.find(user => user.id === id);
+}
+
 function userLeave(id) {
     const user = users.find(user => user.id === id);
     const index = users.indexOf(user);
@@ -32,4 +36,5 @@ module.exports = {
     getAllUsersInRoom,
     userLeave,
     getGameCode,
+    userExists,
 }
