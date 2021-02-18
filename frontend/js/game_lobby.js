@@ -12,7 +12,7 @@ const draw_div = document.getElementById("draw-div");
 const starting_phrase_div = document.getElementById("starting-phrase-div");
 const describe_div = document.getElementById("describe-div");
 const show_results_div = document.getElementById("show-results-div");
-const divNames = ["game-lobby-div", "draw-div", "starting-phrase-div", "describe-div"]
+const divNames = ["game-lobby-div", "draw-div", "starting-phrase-div", "describe-div", "show-results-div"];
 
 // to handle disconnects different if the game has game has started
 var is_waiting = false;
@@ -197,31 +197,21 @@ function makeScreen(calledDiv) {
         document.getElementById(divNames[divNumber]).style.display = "none";
     }
     // except the called one
-    document.getElementById(calledDiv).style.display = "";
+    if (calledDiv) {
+        document.getElementById(calledDiv).style.display = "";
+    }
 }
 
 function makeGameLobbyScreen () {
-    starting_phrase_div.style.display = "none";
-    describe_div.style.display = "none";
-    draw_div.style.display = "none";
-    show_results_div.style.display = "none";
-    game_lobby_div.style.display = "";
+    makeScreen("game-lobby-div");
 }
 
 function makeCreatePhraseScreen() {
-    describe_div.style.display = "none";
-    game_lobby_div.style.display = "none";
-    draw_div.style.display = "none";
-    show_results_div.style.display = "none";
-    starting_phrase_div.style.display = "";
+    makeScreen("starting-phrase-div");
 }
 
 function makeDrawScreen(phrase) {
-    describe_div.style.display = "none";
-    starting_phrase_div.style.display = "none";
-    draw_div.style.display = "";
-    show_results_div.style.display = "none";
-    game_lobby_div.style.display = "none";
+    makeScreen("draw-div");
 
     const to_draw = document.getElementById("to-draw");
     const text_node = document.createTextNode(phrase);
@@ -231,11 +221,7 @@ function makeDrawScreen(phrase) {
 }
 
 function makeDescribeScreen(drawing) {
-    describe_div.style.display = "";
-    game_lobby_div.style.display = "none";
-    draw_div.style.display = "none";
-    starting_phrase_div.style.display = "none";
-    show_results_div.style.display = "none";
+    makeScreen("describe-div");
 
     const picture = document.createElement("img");
     picture.src = drawing;
@@ -245,19 +231,11 @@ function makeDescribeScreen(drawing) {
 }
 
 function makeWaitScreen() {
-    describe_div.style.display = "none";
-    game_lobby_div.style.display = "none";
-    draw_div.style.display = "none";
-    starting_phrase_div.style.display = "none";
-    show_results_div.style.display = "none";
+    makeScreen(false);
 }
 
 function makeResultsScreen() {
-    describe_div.style.display = "none";
-    game_lobby_div.style.display = "none";
-    draw_div.style.display = "none";
-    starting_phrase_div.style.display = "none";
-    show_results_div.style.display = "";
+    makeScreen("show-results-div");
 }
 
 
