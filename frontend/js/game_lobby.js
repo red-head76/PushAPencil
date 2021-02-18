@@ -11,11 +11,14 @@ const game_lobby_div = document.getElementById("game-lobby-div");
 const draw_div = document.getElementById("draw-div");
 const starting_phrase_div = document.getElementById("starting-phrase-div");
 const describe_div = document.getElementById("describe-div");
+const show_results_div = document.getElementById("show-results-div");
 
 // to handle disconnects different if the game has game has started
 var is_waiting = false;
 var game_state = "lobby";  // one of lobby, start, draw, describe
 const tasks = [];
+
+// var game_state = "show results";
 
 // server communication in user lobby
 // _______________________________________________________________________________________________
@@ -75,6 +78,10 @@ function load() {
             createUserNameInList(user_name);
             socket.emit("new game lobby", user_name);
         }
+    } else if (game_state === "show results") {
+        makeResultsScreen();
+    } else if (game_state === "draw") {
+        makeDrawScreen("Ein Luis")
     }
 }
 
@@ -186,6 +193,7 @@ function makeGameLobbyScreen () {
     starting_phrase_div.style.display = "none";
     describe_div.style.display = "none";
     draw_div.style.display = "none";
+    show_results_div.style.display = "none";
     game_lobby_div.style.display = "";
 }
 
@@ -193,6 +201,7 @@ function makeCreatePhraseScreen() {
     describe_div.style.display = "none";
     game_lobby_div.style.display = "none";
     draw_div.style.display = "none";
+    show_results_div.style.display = "none";
     starting_phrase_div.style.display = "";
 }
 
@@ -200,6 +209,7 @@ function makeDrawScreen(phrase) {
     describe_div.style.display = "none";
     starting_phrase_div.style.display = "none";
     draw_div.style.display = "";
+    show_results_div.style.display = "none";
     game_lobby_div.style.display = "none";
 
     const to_draw = document.getElementById("to-draw");
@@ -214,6 +224,7 @@ function makeDescribeScreen(drawing) {
     game_lobby_div.style.display = "none";
     draw_div.style.display = "none";
     starting_phrase_div.style.display = "none";
+    show_results_div.style.display = "none";
 
     const picture = document.createElement("img");
     picture.src = drawing;
@@ -227,6 +238,15 @@ function makeWaitScreen() {
     game_lobby_div.style.display = "none";
     draw_div.style.display = "none";
     starting_phrase_div.style.display = "none";
+    show_results_div.style.display = "none";
+}
+
+function makeResultsScreen() {
+    describe_div.style.display = "none";
+    game_lobby_div.style.display = "none";
+    draw_div.style.display = "none";
+    starting_phrase_div.style.display = "none";
+    show_results_div.style.display = "";
 }
 
 
