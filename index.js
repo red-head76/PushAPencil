@@ -49,6 +49,7 @@ io.on('connection', function (socket) {
     
     socket.on("push task", function(type, task, game_code) {
         socket.to(nextPlayer(socket.id, game_code).id).emit("next task", type, task);
+        saveTaks(user, task);
     });
         
     socket.on("game start", function(game_code) {
