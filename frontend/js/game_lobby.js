@@ -291,6 +291,10 @@ function initDrawingTool() {
     rubber.style.fill = "white";
     background.style.fill = "white";
     fill.style.fill = "white";
+    
+    small_pencil.style.fill = "white";
+    medium_pencil.style.fill = "gray";
+    big_pencil.style.fill = "white";
 
     show_color.style.fill = "black";
 }
@@ -318,18 +322,18 @@ function fillBackground() {
 
 // new position from mouse event
 function beginLine(e) {
-    if (mode == "pencil" || mode == "rubber") {
-        if (e.button == 1) {
-            fillBackground()
+    if (e.button == 1 || mode == "fill") {
+        if (mode == "rubber") {
+            ctx
         } else {
+            bucketTool(e);
+        }
+    } else if (mode == "pencil" || mode == "rubber") {
             pos.x = getX(e);
             pos.y = getY(e);
 
             ctx.beginPath();
             ctx.moveTo(pos.x, pos.y);
-        }
-    } else if (mode == "fill") {
-        bucketTool(e);
     }
 }
 

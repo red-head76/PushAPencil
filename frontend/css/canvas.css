@@ -23,29 +23,27 @@
     float: right;
 }
 
+
+.toolName {
+    width: 80%;
+    margin: auto;
+    margin-top: 10%;
+}
+
 #tools {
     display: block;
     margin: auto;
-    margin-top: 10%;
 }
 
 #color_palette {
     display: block;
     margin: auto;
-    margin-top: 10%;
 }
 
 #linewidth-chooser {
-    margin-top: 10%;
     float: right;
 }
 
 #linewidth-chooser circle {
     fill: white;
-}
-
-.bottom-side {
-    position: absolute;
-    top: 60vh;
-    left: 85vw;
 }
