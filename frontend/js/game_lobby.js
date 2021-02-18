@@ -19,7 +19,7 @@ var is_waiting = false;
 var game_state = "lobby";  // one of lobby, start, draw, describe
 const tasks = [];
 
-// var game_state = "show results";
+var game_state = "draw";
 
 // server communication in user lobby
 // _______________________________________________________________________________________________
@@ -245,6 +245,9 @@ function makeResultsScreen() {
 var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
 
+var canvas_background = document.getElementById("myBackgroundCanvas");
+var ctx_background = canvas_background.getContext("2d");
+
 // last known position
 var pos = { x: 0, y: 0 };
 var rect = canvas.getBoundingClientRect();
@@ -264,18 +267,24 @@ function clearAll() {
     small_pencil.style.fill = "white";
     medium_pencil.style.fill = "gray";
     big_pencil.style.fill = "white";
+    
     ctx.lineWidth = "5";
     ctx.lineCap = "round";
+    ctx.strokeStyle = "black";
+    
     mode = "pencil"; // pencil, fill
     background_color = "#ffffff";
-    ctx.strokeStyle = "black";
     last_color = "black";
+    
     pencil.style.fill = "gray";
     rubber.style.fill = "white";
     background.style.fill = "white";
     fill.style.fill = "white";
-    ctx.fillStyle = "white";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    ctx_background.fillStyle = "white";
+    ctx_background.fillRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     show_color.style.fill = "black";
 }
 
@@ -283,11 +292,19 @@ function clearAll() {
 function resize() {
     canvas.width = window.innerWidth * 0.6;
     canvas.height = window.innerHeight;
+    canvas_background.width = window.innerWidth * 0.6;
+    canvas_background.height = window.innerHeight
 }
 
 function initDrawingTool() {
     canvas.width = window.innerWidth * 0.6;
     canvas.height = window.innerHeight;
+    
+    canvas_background.width = window.innerWidth * 0.6;
+    canvas_background.height = window.innerHeight;
+    ctx_background.fillStyle = "white";
+    ctx_background.fillRect(0, 0, canvas.width, canvas.height);
+    
     medium_pencil.style.fill = "gray";
     ctx.lineWidth = "5";
     ctx.strokeStyle = "black";
@@ -309,24 +326,10 @@ function initDrawingTool() {
 }
 
 
-function fillBackground() {
-    // Fills the canvas at every pixel that matches the old background color
-    colorLayer = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const old_Bkg_Color = HEXtoRGBA(background_color);
-    console.log("old background:", old_Bkg_Color);
-    background_color = ctx.strokeStyle;
-    const new_Bkg_Color = HEXtoRGBA(background_color);
-    console.log("new background:", new_Bkg_Color);
-    if (!equals(old_Bkg_Color, new_Bkg_Color)) {
-        for (var x = 0; x < canvas.width; x++) {
-            for (var y = 0; y < canvas.height; y++) {
-                if (checkColorMatch(colorLayer, x, y, old_Bkg_Color)) {
-                    colorPixel(colorLayer, x, y, new_Bkg_Color);
-                }
-            }
-        }
-    }
-    ctx.putImageData(colorLayer, 0, 0);
+function fillBackground(color) {
+    background_color = color;
+    ctx_background.fillStyle = color;
+    ctx_background.fillRect(0, 0, canvas_background.width, canvas_background.height);
 }
 
 // new position from mouse event
@@ -451,9 +454,9 @@ colors_array.forEach(function(color, index) {
                 last_color = ctx.strokeStyle;
                 show_color.style.fill = color.style.fill;
             } else if (mode == "background") {
-                ctx.strokeStyle = color.style.fill;
-                fillBackground();
-                ctx.strokeStyle = last_color;
+                //ctx.strokeStyle = color.style.fill;
+                fillBackground(color.style.fill);
+                //ctx.strokeStyle = last_color;
             }
         }
     });

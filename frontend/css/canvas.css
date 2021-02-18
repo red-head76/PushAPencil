@@ -11,9 +11,17 @@
     height: 100vh;
 }
 
-#myCanvas {
+.myCanvas {
     position: absolute;
     left: 20%;
+}
+
+#myCanvas {
+    z-index: 1;
+}
+
+#myBackgroundCanvas {
+    z-index: 0; 
 }
 
 #settingsGroup {
