@@ -11,6 +11,7 @@ const game_lobby_div = document.getElementById("game-lobby-div");
 const draw_div = document.getElementById("draw-div");
 const starting_phrase_div = document.getElementById("starting-phrase-div");
 const describe_div = document.getElementById("describe-div");
+const divNames = ["game-lobby-div", "draw-div", "starting-phrase-div", "describe-div"]
 
 // to handle disconnects different if the game has game has started
 var is_waiting = false;
@@ -180,6 +181,16 @@ function continueWithDescribing() {
         game_state = "describe";
         makeWaitScreen();
     }
+}
+
+// Help function for all other make...Screen functions
+function makeScreen(calledDiv) {
+    // set all divs to none
+    for (var divNumber = 0; divNumber < divNames.length; divNumber++) {
+        document.getElementById(divNames[divNumber]).style.display = "none";
+    }
+    // except the called one
+    document.getElementById(calledDiv).style.display = "";
 }
 
 function makeGameLobbyScreen () {
