@@ -405,7 +405,19 @@ function drawLine(e) {
         } else if (right_click) {
             ctx_prerender.strokeStyle = ctx.strokeStyle;
             ctx_prerender.lineWidth = ctx.lineWidth;
-            ctx_prerender.setLineDash([10, 10]);
+            
+            switch (ctx.lineWidth) {
+                case 1:
+                    ctx_prerender.setLineDash([10, 10]);
+                    break;
+                case 5:
+                    ctx_prerender.setLineDash([10, 10]);
+                    break;
+                case 20:
+                    ctx_prerender.setLineDash([60, 40]);
+                    break;
+            }
+            
             ctx_prerender.clearRect(0, 0, canvas.width, canvas.height);
             ctx_prerender.moveTo(pos.x, pos.y);
             ctx_prerender.lineTo(getX(e), getY(e));
