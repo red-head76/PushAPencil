@@ -259,7 +259,8 @@ var offset_y;
 var last_actions_stack = [];
 var undo_redo_index = 0;
 var right_click = false;
-left_click = false;
+var left_click = false;
+var rubber_started = false;
 
 var mode = "pencil"; // pencil, fill
 var background_color = "#ffffff"; // White
@@ -298,6 +299,7 @@ function clearAll() {
     
     left_click = false;
     right_click = false;
+    rubber_started = false;
     last_actions_stack = [];
     pushToLastActions({ canvas: cloneCanvas(canvas), background: cloneCanvas(canvas_background) });
     undo_redo_index = 0;  
@@ -349,6 +351,7 @@ function initDrawingTool() {
     
     left_click = false;
     right_click = false;
+    rubber_started = false;
     last_actions_stack = [];
     pushToLastActions({ canvas: cloneCanvas(canvas), background: cloneCanvas(canvas_background) });
     undo_redo_index = 0;
@@ -372,7 +375,7 @@ function beginLine(e) {
         } else {
             bucketTool(e);
         }
-    } else if (mode == "pencil" || mode == "rubber") {
+    } else if (mode == "pencil") {
         
         if (e.button == 2) {
             right_click = true;
@@ -389,11 +392,13 @@ function beginLine(e) {
             ctx.beginPath();
             ctx.moveTo(pos.x, pos.y);
         }
+    } else if (mode == "rubber") {
+        rubber_started = true;
     }
 }
 
 function drawLine(e) {
-    if (mode == "pencil" || mode == "rubber") {
+    if (mode == "pencil") {
         
         // to prevend drawing if a mousebutton is pressed outside of the canvas and moved in
         if (left_click) {
@@ -424,12 +429,14 @@ function drawLine(e) {
             ctx_prerender.stroke();
             ctx_prerender.beginPath();
         }
+    } else if (mode == "rubber" & rubber_started) {
+        ctx.clearRect(getX(e) - 10, getY(e) - 10, 20, 20);
     }
 }
 
 function endLine(e) {
-    if (mode == "pencil" || mode == "rubber") {
-        if (e.button !== 1) {
+    if (e.button !== 1) {
+        if (mode == "pencil") {
             if (left_click) {
                 left_click = false;
                 
@@ -446,9 +453,10 @@ function endLine(e) {
                 ctx.lineTo(getX(e), getY(e));
                 ctx.stroke();
             }
-            
-            pushToLastActions({ canvas: cloneCanvas(canvas), background: cloneCanvas(canvas_background) });
+        } else if (mode == "rubber") {
+            rubber_started = false;
         }
+    pushToLastActions({ canvas: cloneCanvas(canvas), background: cloneCanvas(canvas_background) });
     }
 }
 
@@ -529,14 +537,12 @@ var show_color = document.getElementById("show-current-color");
 colors_array.forEach(function(color, index) {
     color.addEventListener("click", function() {
         if (color.id !== "show-current-color") {
-            if (mode == "pencil" || mode == "fill") {
+            if (mode == "background") {
+                fillBackground(color.style.fill);
+            } else {
                 ctx.strokeStyle = color.style.fill;
                 last_color = ctx.strokeStyle;
                 show_color.style.fill = color.style.fill;
-            } else if (mode == "background") {
-                //ctx.strokeStyle = color.style.fill;
-                fillBackground(color.style.fill);
-                //ctx.strokeStyle = last_color;
             }
         }
     });
