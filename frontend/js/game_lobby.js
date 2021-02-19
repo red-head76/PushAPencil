@@ -241,6 +241,8 @@ function makeResultsScreen() {
 
 // draw to canvas functions
 // ______________________________________________________________________________________________________
+var canvas_save = document.getElementById("mySaveCanvas");
+var ctx_save = canvas_save.getContext("2d");
 
 var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
@@ -253,6 +255,12 @@ var pos = { x: 0, y: 0 };
 var rect = canvas.getBoundingClientRect();
 var offset_x;
 var offset_y;
+
+var line = [];
+var last_actions_stack = [];
+var undo_redo_index = -1;
+var right_click = false;
+left_click = false;
 
 var mode = "pencil"; // pencil, fill
 var background_color = "#ffffff"; // White
@@ -271,6 +279,7 @@ function clearAll() {
     ctx.lineWidth = "5";
     ctx.lineCap = "round";
     ctx.strokeStyle = "black";
+    ctx_save.lineCap = "round";
     
     mode = "pencil"; // pencil, fill
     background_color = "#ffffff";
@@ -285,7 +294,14 @@ function clearAll() {
     ctx_background.fillRect(0, 0, canvas.width, canvas.height);
     
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx_save.clearRect(0, 0, canvas.width, canvas.height);
     show_color.style.fill = "black";
+    
+    left_click = false;
+    right_click = false;
+    line = [];
+    last_actions_stack = [];
+    undo_redo_index = -1;    
 }
 
 // resize canvas
@@ -293,7 +309,9 @@ function resize() {
     canvas.width = window.innerWidth * 0.6;
     canvas.height = window.innerHeight;
     canvas_background.width = window.innerWidth * 0.6;
-    canvas_background.height = window.innerHeight
+    canvas_background.height = window.innerHeight;
+        canvas_save.width = window.innerWidth * 0.6;
+    canvas_save.height = window.innerHeight;
 }
 
 function initDrawingTool() {
@@ -305,10 +323,14 @@ function initDrawingTool() {
     ctx_background.fillStyle = "white";
     ctx_background.fillRect(0, 0, canvas.width, canvas.height);
     
+    canvas_save.width = window.innerWidth * 0.6;
+    canvas_save.height = window.innerHeight;
+    
     medium_pencil.style.fill = "gray";
     ctx.lineWidth = "5";
     ctx.strokeStyle = "black";
     ctx.lineCap = "round";
+    ctx_save.lineCap = "round";
     rect = canvas.getBoundingClientRect();
     offset_x = rect.left;
     offset_y = rect.top;
@@ -317,14 +339,21 @@ function initDrawingTool() {
     rubber.style.fill = "white";
     background.style.fill = "white";
     fill.style.fill = "white";
+    undo.style.fill = "white";
+    redo.style.fill = "white";
     
     small_pencil.style.fill = "white";
     medium_pencil.style.fill = "gray";
     big_pencil.style.fill = "white";
 
     show_color.style.fill = "black";
+    
+    left_click = false;
+    right_click = false;
+    line = [];
+    last_actions_stack = [];
+    undo_redo_index = -1;
 }
-
 
 function fillBackground(color) {
     background_color = color;
@@ -336,42 +365,104 @@ function fillBackground(color) {
 function beginLine(e) {
     if (e.button == 1 || mode == "fill") {
         if (mode == "rubber") {
-            ctx
+            ctx.strokeStyle = last_color;
+            bucketTool(e);
+            // TODO change to right rubber 'color'
+            ctx.strokeStyle = background_color;
         } else {
             bucketTool(e);
         }
     } else if (mode == "pencil" || mode == "rubber") {
-            pos.x = getX(e);
-            pos.y = getY(e);
+        
+        if (e.button == 2) {
+            right_click = true;
+        } else {
+            left_click = true;
+        }
+            
+        pos.x = getX(e);
+        pos.y = getY(e);
 
-            ctx.beginPath();
-            ctx.moveTo(pos.x, pos.y);
+        ctx.beginPath();
+        ctx.moveTo(pos.x, pos.y);
+            
+        line.push({ x: pos.x, y: pos.y});
     }
 }
 
 function drawLine(e) {
     if (mode == "pencil" || mode == "rubber") {
-        if (e.buttons !== 1) return;
+        
+        // to prevend drawing if a mousebutton is pressed outside of the canvas and moved in
+        if (left_click) {
+            pos.x = getX(e);
+            pos.y = getY(e);
 
-        pos.x = getX(e);
-        pos.y = getY(e);
-
-        ctx.lineTo(pos.x, pos.y);
-        ctx.stroke();
-        ctx.moveTo(pos.x, pos.y);
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+                
+            line.push({ x: pos.x, y: pos.y});
+        } else if (right_click) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.moveTo(pos.x, pos.y);
+            ctx.lineTo(getX(e), getY(e));
+            ctx.stroke();
+            ctx.beginPath();
+        }
     }
 }
 
 function endLine(e) {
     if (mode == "pencil" || mode == "rubber") {
         if (e.button !== 1) {
-            pos.x = getX(e);
-            pos.y = getY(e);
+            if (left_click) {
+                left_click = false;
+                
+                pos.x = getX(e);
+                pos.y = getY(e);
 
-            ctx.lineTo(pos.x, pos.y);
-            ctx.stroke(); // Draw it
+                ctx.lineTo(pos.x, pos.y);
+                ctx.stroke(); // Draw it
+                line.push({ x: pos.x, y: pos.y});
+                transverAndClearCanvas();
+            } else if (right_click) {
+                right_click = false;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.moveTo(pos.x, pos.y);
+                ctx.lineTo(getX(e), getY(e));
+                ctx.stroke();
+                line.push({ x: getX(e), y: getY(e)});
+                transverAndClearCanvas();
+            }
         }
     }
+}
+
+function transverAndClearCanvas() {
+    if (last_actions_stack.length > undo_redo_index + 1) {
+        last_actions_stack = last_actions_stack.splice(0, undo_redo_index + 1);
+    }
+    
+    width = ctx.lineWidth;
+    color = ctx.strokeStyle;
+    const line_info = [...line];
+    const line_element = { line_info, color, width };
+    
+    last_actions_stack.push(line_element);
+    ctx_save.beginPath();
+    ctx_save.lineWidth = width;
+    ctx_save.strokeStyle = color;
+    var position = line.pop();
+    ctx_save.moveTo(position.x, position.y);
+    
+    while (line.length) {
+        position = line.pop();
+        ctx_save.lineTo(position.x, position.y);
+    }
+    
+    ctx_save.stroke();
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    undo_redo_index += 1;
 }
 
 function tweezerTool(e) {
@@ -388,7 +479,7 @@ function tweezerTool(e) {
 // bucket tool (fill tool) from
 // http://www.williammalone.com/articles/html5-canvas-javascript-paint-bucket-tool/
 function bucketTool(e) {
-    var colorLayer = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    var colorLayer = ctx_save.getImageData(0, 0, canvas.width, canvas.height);
     const startX = getX(e);
     const startY = getY(e);
     var pixelStack = [[startX, startY]];
@@ -436,11 +527,12 @@ function bucketTool(e) {
                 }
                 y++;
             }
-            ctx.putImageData(colorLayer, 0, 0);
+            ctx_save.putImageData(colorLayer, 0, 0);
         }
     }
 }
 
+// color palette
 var color_palette = document.getElementById("color_palette");
 var colors = color_palette.getElementsByTagName("path");
 var colors_array = Array.prototype.slice.call(colors);
@@ -461,6 +553,8 @@ colors_array.forEach(function(color, index) {
         }
     });
 });
+
+// tools
 
 var rubber = document.getElementById("rubber");
 rubber.addEventListener("click", function(event) {
@@ -486,7 +580,7 @@ pencil.addEventListener("click", function(event) {
 var fill = document.getElementById("fill");
 fill.addEventListener("click", function(event) {
     ctx.strokeStyle = last_color;
-    mode = "fill"
+    mode = "fill";
     pencil.style.fill = "white";
     rubber.style.fill = "white";
     background.style.fill = "white";
@@ -500,6 +594,53 @@ background.addEventListener("click", function(event) {
     rubber.style.fill = "white";
     background.style.fill = "gray";
     fill.style.fill = "white";
+});
+
+const undo = document.getElementById("undo");
+undo.addEventListener("click", function(event) {
+    if (undo_redo_index > -1) {
+        const line_element = last_actions_stack[undo_redo_index];
+        const line = [...line_element.line_info];
+
+        ctx_save.beginPath();
+        ctx_save.strokeStyle = background_color;
+        ctx_save.lineWidth = line_element.width;
+        
+        var position = line.pop();
+        ctx_save.moveTo(position.x, position.y);
+    
+        while (line.length) {
+            position = line.pop();
+            ctx_save.lineTo(position.x, position.y);
+        }
+    
+        ctx_save.stroke();
+        undo_redo_index -= 1;
+    }
+});
+
+const redo = document.getElementById("redo");
+redo.addEventListener("click", function(event) {
+    if (undo_redo_index + 1 < last_actions_stack.length) {
+        
+        undo_redo_index += 1;
+        const line_element = last_actions_stack[undo_redo_index];
+        const line = [...line_element.line_info];
+        
+        ctx_save.beginPath();
+        ctx_save.strokeStyle = line_element.color;
+        ctx_save.lineWidth = line_element.width;
+        
+        var position = line.pop();
+        ctx_save.moveTo(position.x, position.y);
+    
+        while (line.length) {
+            position = line.pop();
+            ctx_save.lineTo(position.x, position.y);
+        }
+    
+        ctx_save.stroke();
+    }
 });
 
 var clear = document.getElementById("clear");
