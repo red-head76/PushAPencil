@@ -241,8 +241,8 @@ function makeResultsScreen() {
 
 // draw to canvas functions
 // ______________________________________________________________________________________________________
-var canvas_save = document.getElementById("mySaveCanvas");
-var ctx_save = canvas_save.getContext("2d");
+var canvas_prerender = document.getElementById("myPrerenderCanvas");
+var ctx_prerender = canvas_prerender.getContext("2d");
 
 var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
@@ -256,9 +256,8 @@ var rect = canvas.getBoundingClientRect();
 var offset_x;
 var offset_y;
 
-var line = [];
 var last_actions_stack = [];
-var undo_redo_index = -1;
+var undo_redo_index = 0;
 var right_click = false;
 left_click = false;
 
@@ -267,9 +266,9 @@ var background_color = "#ffffff"; // White
 var last_color = "#000000";     // Black
 
 window.addEventListener("resize", resize);
-canvas.addEventListener("mousemove", drawLine);
-canvas.addEventListener("mousedown", beginLine);
-canvas.addEventListener("mouseup", endLine);
+canvas_prerender.addEventListener("mousemove", drawLine);
+canvas_prerender.addEventListener("mousedown", beginLine);
+canvas_prerender.addEventListener("mouseup", endLine);
 
 function clearAll() {
     small_pencil.style.fill = "white";
@@ -279,7 +278,7 @@ function clearAll() {
     ctx.lineWidth = "5";
     ctx.lineCap = "round";
     ctx.strokeStyle = "black";
-    ctx_save.lineCap = "round";
+    ctx_prerender.lineCap = "round";
     
     mode = "pencil"; // pencil, fill
     background_color = "#ffffff";
@@ -294,14 +293,14 @@ function clearAll() {
     ctx_background.fillRect(0, 0, canvas.width, canvas.height);
     
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx_save.clearRect(0, 0, canvas.width, canvas.height);
+    ctx_prerender.clearRect(0, 0, canvas.width, canvas.height);
     show_color.style.fill = "black";
     
     left_click = false;
     right_click = false;
-    line = [];
     last_actions_stack = [];
-    undo_redo_index = -1;    
+    pushToLastActions({ canvas: cloneCanvas(canvas), background: cloneCanvas(canvas_background) });
+    undo_redo_index = 0;  
 }
 
 // resize canvas
@@ -310,8 +309,8 @@ function resize() {
     canvas.height = window.innerHeight;
     canvas_background.width = window.innerWidth * 0.6;
     canvas_background.height = window.innerHeight;
-        canvas_save.width = window.innerWidth * 0.6;
-    canvas_save.height = window.innerHeight;
+        canvas_prerender.width = window.innerWidth * 0.6;
+    canvas_prerender.height = window.innerHeight;
 }
 
 function initDrawingTool() {
@@ -323,14 +322,14 @@ function initDrawingTool() {
     ctx_background.fillStyle = "white";
     ctx_background.fillRect(0, 0, canvas.width, canvas.height);
     
-    canvas_save.width = window.innerWidth * 0.6;
-    canvas_save.height = window.innerHeight;
+    canvas_prerender.width = window.innerWidth * 0.6;
+    canvas_prerender.height = window.innerHeight;
     
     medium_pencil.style.fill = "gray";
     ctx.lineWidth = "5";
     ctx.strokeStyle = "black";
     ctx.lineCap = "round";
-    ctx_save.lineCap = "round";
+    ctx_prerender.lineCap = "round";
     rect = canvas.getBoundingClientRect();
     offset_x = rect.left;
     offset_y = rect.top;
@@ -350,15 +349,16 @@ function initDrawingTool() {
     
     left_click = false;
     right_click = false;
-    line = [];
     last_actions_stack = [];
-    undo_redo_index = -1;
+    pushToLastActions({ canvas: cloneCanvas(canvas), background: cloneCanvas(canvas_background) });
+    undo_redo_index = 0;
 }
 
 function fillBackground(color) {
     background_color = color;
     ctx_background.fillStyle = color;
     ctx_background.fillRect(0, 0, canvas_background.width, canvas_background.height);
+    pushToLastActions({ canvas: cloneCanvas(canvas), background: cloneCanvas(canvas_background) });
 }
 
 // new position from mouse event
@@ -376,17 +376,19 @@ function beginLine(e) {
         
         if (e.button == 2) {
             right_click = true;
+            pos.x = getX(e);
+            pos.y = getY(e);
+
+            ctx.beginPath();
+            ctx.moveTo(pos.x, pos.y);
         } else {
             left_click = true;
-        }
-            
-        pos.x = getX(e);
-        pos.y = getY(e);
+            pos.x = getX(e);
+            pos.y = getY(e);
 
-        ctx.beginPath();
-        ctx.moveTo(pos.x, pos.y);
-            
-        line.push({ x: pos.x, y: pos.y});
+            ctx.beginPath();
+            ctx.moveTo(pos.x, pos.y);
+        }
     }
 }
 
@@ -400,14 +402,15 @@ function drawLine(e) {
 
             ctx.lineTo(pos.x, pos.y);
             ctx.stroke();
-                
-            line.push({ x: pos.x, y: pos.y});
         } else if (right_click) {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.moveTo(pos.x, pos.y);
-            ctx.lineTo(getX(e), getY(e));
-            ctx.stroke();
-            ctx.beginPath();
+            ctx_prerender.strokeStyle = ctx.strokeStyle;
+            ctx_prerender.lineWidth = ctx.lineWidth;
+            ctx_prerender.setLineDash([10, 10]);
+            ctx_prerender.clearRect(0, 0, canvas.width, canvas.height);
+            ctx_prerender.moveTo(pos.x, pos.y);
+            ctx_prerender.lineTo(getX(e), getY(e));
+            ctx_prerender.stroke();
+            ctx_prerender.beginPath();
         }
     }
 }
@@ -423,46 +426,18 @@ function endLine(e) {
 
                 ctx.lineTo(pos.x, pos.y);
                 ctx.stroke(); // Draw it
-                line.push({ x: pos.x, y: pos.y});
-                transverAndClearCanvas();
             } else if (right_click) {
                 right_click = false;
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx_prerender.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.beginPath();
                 ctx.moveTo(pos.x, pos.y);
                 ctx.lineTo(getX(e), getY(e));
                 ctx.stroke();
-                line.push({ x: getX(e), y: getY(e)});
-                transverAndClearCanvas();
             }
+            
+            pushToLastActions({ canvas: cloneCanvas(canvas), background: cloneCanvas(canvas_background) });
         }
     }
-}
-
-function transverAndClearCanvas() {
-    if (last_actions_stack.length > undo_redo_index + 1) {
-        last_actions_stack = last_actions_stack.splice(0, undo_redo_index + 1);
-    }
-    
-    width = ctx.lineWidth;
-    color = ctx.strokeStyle;
-    const line_info = [...line];
-    const line_element = { line_info, color, width };
-    
-    last_actions_stack.push(line_element);
-    ctx_save.beginPath();
-    ctx_save.lineWidth = width;
-    ctx_save.strokeStyle = color;
-    var position = line.pop();
-    ctx_save.moveTo(position.x, position.y);
-    
-    while (line.length) {
-        position = line.pop();
-        ctx_save.lineTo(position.x, position.y);
-    }
-    
-    ctx_save.stroke();
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    undo_redo_index += 1;
 }
 
 function tweezerTool(e) {
@@ -479,7 +454,7 @@ function tweezerTool(e) {
 // bucket tool (fill tool) from
 // http://www.williammalone.com/articles/html5-canvas-javascript-paint-bucket-tool/
 function bucketTool(e) {
-    var colorLayer = ctx_save.getImageData(0, 0, canvas.width, canvas.height);
+    var colorLayer = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const startX = getX(e);
     const startY = getY(e);
     var pixelStack = [[startX, startY]];
@@ -527,9 +502,10 @@ function bucketTool(e) {
                 }
                 y++;
             }
-            ctx_save.putImageData(colorLayer, 0, 0);
+            ctx.putImageData(colorLayer, 0, 0);
         }
     }
+    pushToLastActions({ canvas: cloneCanvas(canvas), background: cloneCanvas(canvas_background) });
 }
 
 // color palette
@@ -598,48 +574,25 @@ background.addEventListener("click", function(event) {
 
 const undo = document.getElementById("undo");
 undo.addEventListener("click", function(event) {
-    if (undo_redo_index > -1) {
-        const line_element = last_actions_stack[undo_redo_index];
-        const line = [...line_element.line_info];
-
-        ctx_save.beginPath();
-        ctx_save.strokeStyle = background_color;
-        ctx_save.lineWidth = line_element.width;
-        
-        var position = line.pop();
-        ctx_save.moveTo(position.x, position.y);
-    
-        while (line.length) {
-            position = line.pop();
-            ctx_save.lineTo(position.x, position.y);
-        }
-    
-        ctx_save.stroke();
+    if (undo_redo_index > 0) {
         undo_redo_index -= 1;
+        canvas_info = last_actions_stack[undo_redo_index].canvas;
+        background_info = last_actions_stack[undo_redo_index].background;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(canvas_info, 0, 0);
+        ctx_background.drawImage(background_info, 0, 0);
     }
 });
 
 const redo = document.getElementById("redo");
 redo.addEventListener("click", function(event) {
-    if (undo_redo_index + 1 < last_actions_stack.length) {
-        
+    if (undo_redo_index < last_actions_stack.length - 1) {
         undo_redo_index += 1;
-        const line_element = last_actions_stack[undo_redo_index];
-        const line = [...line_element.line_info];
-        
-        ctx_save.beginPath();
-        ctx_save.strokeStyle = line_element.color;
-        ctx_save.lineWidth = line_element.width;
-        
-        var position = line.pop();
-        ctx_save.moveTo(position.x, position.y);
-    
-        while (line.length) {
-            position = line.pop();
-            ctx_save.lineTo(position.x, position.y);
-        }
-    
-        ctx_save.stroke();
+        canvas_info = last_actions_stack[undo_redo_index].canvas;
+        background_info = last_actions_stack[undo_redo_index].background;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(canvas_info, 0, 0);
+        ctx_background.drawImage(background_info, 0, 0);
     }
 });
 
@@ -737,4 +690,29 @@ function colorPixel(colorLayer, x, y, newColor) {
     colorLayer.data[pixelPos+1] = newColor[1];
     colorLayer.data[pixelPos+2] = newColor[2];
     colorLayer.data[pixelPos+3] = 255;
+}
+
+function cloneCanvas(oldCanvas) {
+
+    //create a new canvas
+    var newCanvas = document.createElement('canvas');
+    var context = newCanvas.getContext('2d');
+
+    //set dimensions
+    newCanvas.width = canvas.width;
+    newCanvas.height = canvas.height;
+
+    //apply the old canvas to the new one
+    context.drawImage(oldCanvas, 0, 0);
+
+    //return the new canvas
+    return newCanvas;
+}
+
+function pushToLastActions(data) {
+    if (undo_redo_index < last_actions_stack.length - 1) {
+        last_actions_stack = last_actions_stack.slice(0, undo_redo_index + 1);
+    }
+    last_actions_stack.push(data);
+    undo_redo_index += 1;
 }

@@ -17,15 +17,15 @@
 }
 
 #myCanvas {
-    z-index: 2;
+    z-index: 1;
 }
 
 #myBackgroundCanvas {
     z-index: 0; 
 }
 
-#mySaveCanvas {
-    z-index: 1
+#myPrerenderCanvas {
+    z-index: 2
 }
 
 #settingsGroup {
