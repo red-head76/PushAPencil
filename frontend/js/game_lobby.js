@@ -272,38 +272,14 @@ canvas_prerender.addEventListener("mousedown", beginLine);
 canvas_prerender.addEventListener("mouseup", endLine);
 
 function clearAll() {
-    small_pencil.style.fill = "white";
-    medium_pencil.style.fill = "gray";
-    big_pencil.style.fill = "white";
-    
-    ctx.lineWidth = "5";
-    ctx.lineCap = "round";
-    ctx.strokeStyle = "black";
-    ctx_prerender.lineCap = "round";
-    
-    mode = "pencil"; // pencil, fill
-    background_color = "#ffffff";
-    last_color = "black";
-    
-    pencil.style.fill = "gray";
-    rubber.style.fill = "white";
-    background.style.fill = "white";
-    fill.style.fill = "white";
-    canvas_prerender.classList.remove("rubber");
     
     ctx_background.fillStyle = "white";
     ctx_background.fillRect(0, 0, canvas.width, canvas.height);
     
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx_prerender.clearRect(0, 0, canvas.width, canvas.height);
-    show_color.style.fill = "black";
-    
-    left_click = false;
-    right_click = false;
-    rubber_started = false;
-    last_actions_stack = [];
-    pushToLastActions({ canvas: cloneCanvas(canvas), background: cloneCanvas(canvas_background) });
-    undo_redo_index = 0;
+
+    initDrawingTool();
 }
 
 // resize canvas
@@ -312,7 +288,7 @@ function resize() {
     canvas.height = window.innerHeight;
     canvas_background.width = window.innerWidth * 0.6;
     canvas_background.height = window.innerHeight;
-        canvas_prerender.width = window.innerWidth * 0.6;
+    canvas_prerender.width = window.innerWidth * 0.6;
     canvas_prerender.height = window.innerHeight;
 }
 
@@ -341,9 +317,10 @@ function initDrawingTool() {
     rubber.style.fill = "white";
     background.style.fill = "white";
     fill.style.fill = "white";
-    canvas_prerender.classList.remove("rubber");
     undo.style.fill = "white";
     redo.style.fill = "white";
+    canvas_prerender.className = "myCanvas";
+    canvas_prerender.classList.add("medium-pencil");
     
     small_pencil.style.fill = "white";
     medium_pencil.style.fill = "gray";
@@ -357,6 +334,8 @@ function initDrawingTool() {
     last_actions_stack = [];
     pushToLastActions({ canvas: cloneCanvas(canvas), background: cloneCanvas(canvas_background) });
     undo_redo_index = 0;
+    
+    mode = "pencil";
 }
 
 function fillBackground(color) {
@@ -563,6 +542,7 @@ rubber.addEventListener("click", function(event) {
     background.style.fill = "white";
     fill.style.fill = "white";
     
+    canvas_prerender.className = "myCanvas";
     canvas_prerender.classList.add("rubber");
 });
 
@@ -575,7 +555,19 @@ pencil.addEventListener("click", function(event) {
     background.style.fill = "white";
     fill.style.fill = "white";
     
-    canvas_prerender.classList.remove("rubber");
+    canvas_prerender.className = "myCanvas";
+    switch (ctx.lineWidth) {
+        case 1:
+            canvas_prerender.classList.add("small-pencil");
+            break;
+        case 5:
+            canvas_prerender.classList.add("medium-pencil");
+            break;
+        case 20:
+            canvas_prerender.classList.add("big-pencil");
+            break;
+    }
+    
 });
 
 var fill = document.getElementById("fill");
@@ -587,7 +579,7 @@ fill.addEventListener("click", function(event) {
     background.style.fill = "white";
     fill.style.fill = "gray";
     
-    canvas_prerender.classList.remove("rubber");
+    canvas_prerender.className = "myCanvas";
 });
 
 var background = document.getElementById("background-btn");
@@ -598,7 +590,8 @@ background.addEventListener("click", function(event) {
     background.style.fill = "gray";
     fill.style.fill = "white";
     
-    canvas_prerender.classList.remove("rubber");
+    canvas_prerender.className = "myCanvas";
+    canvas_prerender.classList.add("background-tool");
 });
 
 const undo = document.getElementById("undo");
@@ -639,6 +632,10 @@ small_pencil.addEventListener("click", function(event) {
     small_pencil.style.fill = "gray";
     medium_pencil.style.fill = "white";
     big_pencil.style.fill = "white";
+    
+    if (mode == "pencil") {
+        canvas_prerender.className = "myCanvas small-pencil";
+    }
 });
 
 medium_pencil.addEventListener("click", function(event) {
@@ -646,6 +643,10 @@ medium_pencil.addEventListener("click", function(event) {
     small_pencil.style.fill = "white";
     medium_pencil.style.fill = "gray";
     big_pencil.style.fill = "white";
+    
+    if (mode == "pencil") {
+        canvas_prerender.className = "myCanvas medium-pencil";
+    }
 });
 
 big_pencil.addEventListener("click", function(event) {
@@ -653,6 +654,10 @@ big_pencil.addEventListener("click", function(event) {
     small_pencil.style.fill = "white";
     medium_pencil.style.fill = "white";
     big_pencil.style.fill = "gray";
+    
+    if (mode == "pencil") {
+        canvas_prerender.className = "myCanvas big-pencil";
+    }
 });
 
 // _____________________________________________________________________________

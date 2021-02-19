@@ -20,6 +20,22 @@
     cursor: url(cursor_robber.svg), auto;
 }
 
+.background-tool:hover {
+    cursor: none;
+}
+
+.small-pencil:hover {
+    cursor: url(cursor_small_pencil.svg) 10 10, auto;
+}
+
+.medium-pencil:hover {
+    cursor: url(cursor_medium_pencil.svg) 10 10, auto;
+}
+
+.big-pencil:hover {
+    cursor: url(cursor_big_pencil.svg) 10 10, auto;
+}
+
 #myCanvas {
     z-index: 1;
 }
