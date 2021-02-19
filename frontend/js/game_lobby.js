@@ -289,6 +289,7 @@ function clearAll() {
     rubber.style.fill = "white";
     background.style.fill = "white";
     fill.style.fill = "white";
+    canvas_prerender.classList.remove("rubber");
     
     ctx_background.fillStyle = "white";
     ctx_background.fillRect(0, 0, canvas.width, canvas.height);
@@ -302,7 +303,7 @@ function clearAll() {
     rubber_started = false;
     last_actions_stack = [];
     pushToLastActions({ canvas: cloneCanvas(canvas), background: cloneCanvas(canvas_background) });
-    undo_redo_index = 0;  
+    undo_redo_index = 0;
 }
 
 // resize canvas
@@ -340,6 +341,7 @@ function initDrawingTool() {
     rubber.style.fill = "white";
     background.style.fill = "white";
     fill.style.fill = "white";
+    canvas_prerender.classList.remove("rubber");
     undo.style.fill = "white";
     redo.style.fill = "white";
     
@@ -394,6 +396,7 @@ function beginLine(e) {
         }
     } else if (mode == "rubber") {
         rubber_started = true;
+        ctx.clearRect(getX(e), getY(e), 20, 20);
     }
 }
 
@@ -430,7 +433,7 @@ function drawLine(e) {
             ctx_prerender.beginPath();
         }
     } else if (mode == "rubber" & rubber_started) {
-        ctx.clearRect(getX(e) - 10, getY(e) - 10, 20, 20);
+        ctx.clearRect(getX(e), getY(e), 20, 20);
     }
 }
 
@@ -559,6 +562,8 @@ rubber.addEventListener("click", function(event) {
     rubber.style.fill = "gray";
     background.style.fill = "white";
     fill.style.fill = "white";
+    
+    canvas_prerender.classList.add("rubber");
 });
 
 var pencil = document.getElementById("pencil");
@@ -569,6 +574,8 @@ pencil.addEventListener("click", function(event) {
     rubber.style.fill = "white";
     background.style.fill = "white";
     fill.style.fill = "white";
+    
+    canvas_prerender.classList.remove("rubber");
 });
 
 var fill = document.getElementById("fill");
@@ -579,6 +586,8 @@ fill.addEventListener("click", function(event) {
     rubber.style.fill = "white";
     background.style.fill = "white";
     fill.style.fill = "gray";
+    
+    canvas_prerender.classList.remove("rubber");
 });
 
 var background = document.getElementById("background-btn");
@@ -588,6 +597,8 @@ background.addEventListener("click", function(event) {
     rubber.style.fill = "white";
     background.style.fill = "gray";
     fill.style.fill = "white";
+    
+    canvas_prerender.classList.remove("rubber");
 });
 
 const undo = document.getElementById("undo");

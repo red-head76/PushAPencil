@@ -16,6 +16,10 @@
     left: 20%;
 }
 
+.rubber:hover {
+    cursor: url(cursor_robber.svg), auto;
+}
+
 #myCanvas {
     z-index: 1;
 }
