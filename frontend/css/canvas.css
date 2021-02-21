@@ -16,8 +16,16 @@
     left: 20%;
 }
 
+.rubber-small:hover {
+    cursor: url(cursor_robber_small.svg), auto;
+}
+
 .rubber:hover {
     cursor: url(cursor_robber.svg), auto;
+}
+
+.rubber-big:hover {
+    cursor: url(cursor_robber_big.svg), auto;
 }
 
 .background-tool:hover {

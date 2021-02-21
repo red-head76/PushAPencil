@@ -261,6 +261,7 @@ var undo_redo_index = 0;
 var right_click = false;
 var left_click = false;
 var rubber_started = false;
+var rubber_size = 20;
 
 var mode = "pencil"; // pencil, fill
 var background_color = "#ffffff"; // White
@@ -337,6 +338,9 @@ function initDrawingTool() {
     undo_redo_index = 0;
     
     mode = "pencil";
+    rubber_size = "medium";
+    ctx.miterLimit = 1;
+    last_color = "black";
 }
 
 function fillBackground(color) {
@@ -348,15 +352,8 @@ function fillBackground(color) {
 
 // new position from mouse event
 function beginLine(e) {
-    if (e.button == 1 || mode == "fill") {
-        if (mode == "rubber") {
-            ctx.strokeStyle = last_color;
+    if ((e.button == 1 & mode == "pencil") || mode == "fill") {
             bucketTool(e);
-            // TODO change to right rubber 'color'
-            ctx.strokeStyle = background_color;
-        } else {
-            bucketTool(e);
-        }
     } else if (mode == "pencil") {
         
         if (e.button == 2) {
@@ -374,9 +371,9 @@ function beginLine(e) {
             ctx.beginPath();
             ctx.moveTo(pos.x, pos.y);
         }
-    } else if (mode == "rubber") {
+    } else if (mode == "rubber" & e.button == 0) {
         rubber_started = true;
-        ctx.clearRect(getX(e), getY(e), 20, 20);
+        ctx.clearRect(getX(e), getY(e), rubber_size, rubber_size);
     }
 }
 
@@ -413,7 +410,7 @@ function drawLine(e) {
             ctx_prerender.beginPath();
         }
     } else if (mode == "rubber" & rubber_started) {
-        ctx.clearRect(getX(e), getY(e), 20, 20);
+        ctx.clearRect(getX(e), getY(e), rubber_size, rubber_size);
     }
 }
 
@@ -476,6 +473,8 @@ function bucketTool(e) {
             while (y >= 0 && checkColorMatch(colorLayer, x, y, StartColor)) {
                 y--;
             }
+            // lazy bugfix
+            colorPixel(colorLayer, x, y, FillColor);
             y++;
             reachLeft = false;
             reachRight = false;
@@ -508,8 +507,11 @@ function bucketTool(e) {
                 }
                 y++;
             }
-            ctx.putImageData(colorLayer, 0, 0);
+            // lazy bugfix
+            colorPixel(colorLayer, x, y, FillColor);
+            colorPixel(colorLayer, x, y+1, FillColor);
         }
+        ctx.putImageData(colorLayer, 0, 0);
     }
     pushToLastActions({ canvas: cloneCanvas(canvas), background: cloneCanvas(canvas_background) });
 }
@@ -547,7 +549,20 @@ rubber.addEventListener("click", function(event) {
     fill.style.fill = "white";
     
     canvas_prerender.className = "myCanvas";
-    canvas_prerender.classList.add("rubber");
+    switch (ctx.lineWidth) {
+        case 1:
+            canvas_prerender.classList.add("rubber-small");
+            rubber_size = 10;
+            break;
+        case 5:
+            canvas_prerender.classList.add("rubber");
+            rubber_size = 20;
+            break;
+        case 20:
+            canvas_prerender.classList.add("rubber-big");
+            rubber_size = 40;
+            break;
+    }
 });
 
 var pencil = document.getElementById("pencil");
@@ -639,6 +654,9 @@ small_pencil.addEventListener("click", function(event) {
     
     if (mode == "pencil") {
         canvas_prerender.className = "myCanvas small-pencil";
+    } else if (mode == "rubber") {
+        canvas_prerender.className = "myCanvas rubber-small";
+        rubber_size = 10;
     }
 });
 
@@ -650,6 +668,9 @@ medium_pencil.addEventListener("click", function(event) {
     
     if (mode == "pencil") {
         canvas_prerender.className = "myCanvas medium-pencil";
+    } else if (mode == "rubber") {
+        canvas_prerender.className = "myCanvas rubber";
+        rubber_size = 20;
     }
 });
 
@@ -661,6 +682,9 @@ big_pencil.addEventListener("click", function(event) {
     
     if (mode == "pencil") {
         canvas_prerender.className = "myCanvas big-pencil";
+    } else if (mode == "rubber") {
+        canvas_prerender.className = "myCanvas rubber-big";
+        rubber_size = 40;
     }
 });
 
