@@ -428,6 +428,7 @@ function endLine(e) {
 
                 ctx.lineTo(pos.x, pos.y);
                 ctx.stroke(); // Draw it
+                pushToLastActions({ canvas: cloneCanvas(canvas), background: cloneCanvas(canvas_background) });
             } else if (right_click) {
                 right_click = false;
                 ctx_prerender.clearRect(0, 0, canvas.width, canvas.height);
@@ -435,11 +436,13 @@ function endLine(e) {
                 ctx.moveTo(pos.x, pos.y);
                 ctx.lineTo(getX(e), getY(e));
                 ctx.stroke();
+                pushToLastActions({ canvas: cloneCanvas(canvas), background: cloneCanvas(canvas_background) });
             }
-        } else if (mode == "rubber") {
+        } else if (mode == "rubber" && rubber_started) {
             rubber_started = false;
+            pushToLastActions({ canvas: cloneCanvas(canvas), background: cloneCanvas(canvas_background) });
+            console.log(last_actions_stack);
         }
-    pushToLastActions({ canvas: cloneCanvas(canvas), background: cloneCanvas(canvas_background) });
     }
 }
 
