@@ -270,6 +270,7 @@ window.addEventListener("resize", resize);
 canvas_prerender.addEventListener("mousemove", drawLine);
 canvas_prerender.addEventListener("mousedown", beginLine);
 canvas_prerender.addEventListener("mouseup", endLine);
+canvas_prerender.addEventListener("mouseout", endLine);
 
 function clearAll() {
     
