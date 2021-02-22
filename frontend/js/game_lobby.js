@@ -470,6 +470,7 @@ function bucketTool(e) {
             newPos = pixelStack.pop();
             x = newPos[0];
             y = newPos[1];
+            
             while (y >= 0 && checkColorMatch(colorLayer, x, y, StartColor)) {
                 y--;
             }

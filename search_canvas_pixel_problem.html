@@ -1,38 +1,36 @@
 <html>
 <body>
-<canvas id="c" height=300></canvas>
+<canvas id="c" height=2 width=2></canvas>
+<img id="test" height=500 width=500></img>
 
 <script>
 var ctx = c.getContext('2d');
 ctx.strokeStyle="red";
+
+function setPixelated(ctx){
+    ctx['imageSmoothingEnabled'] = false;       /* standard */
+    ctx['mozImageSmoothingEnabled'] = false;    /* Firefox */
+    ctx['oImageSmoothingEnabled'] = false;      /* Opera */
+    ctx['webkitImageSmoothingEnabled'] = false; /* Safari */
+    ctx['msImageSmoothingEnabled'] = false;     /* IE */
+}
+
+// setPixelated(ctx);
+
 // draw big
-ctx.scale(30, 30);
+// ctx.scale(30, 30);
 ctx.beginPath();
-ctx.moveTo(1, 0);
-ctx.lineTo(9, 10);
+ctx.moveTo(0, 0);
+ctx.lineTo(2, 2);
 ctx.stroke();
 
-drawPixelGrid();
+const img = c.toDataURL();
+console.log(ctx.getImageData(0, 0, c.width, c.height).data);
+const img_tag = document.getElementById("test");
+img_tag.src = img;
 
+document.write('<img src="'+img+'"/>');
 
-function drawPixelGrid() {
-  // simply renders where the pixel bounds are
-  ctx.beginPath();
-  // remove the zoom
-  ctx.setTransform(1,0,0,1,0,0);
-  ctx.strokeStyle = 'gray';
-  ctx.lineWidth = 2; // avoid the problem we are demonstrating by using a perfect lineWidth ;-)
-
-  for(let y=0; y<=300; y+=30) {
-    ctx.moveTo(0, y);
-    ctx.lineTo(300, y);
-    for(let x=0; x<=300; x+=30) {
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, 300);
-    }
-  }
-  ctx.stroke();
-}
 </script>
 </body>
 </html>
