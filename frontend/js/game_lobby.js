@@ -5,21 +5,20 @@ window.addEventListener("load", load);
 const url = new URL(window.location.href);
 const user_name = url.searchParams.get("user-name");
 var game_code = url.searchParams.get("game-code");
+var numberOfUsers;
 
 // divs to switch between for differen game states
-const game_lobby_div = document.getElementById("game-lobby-div");
-const draw_div = document.getElementById("draw-div");
-const starting_phrase_div = document.getElementById("starting-phrase-div");
-const describe_div = document.getElementById("describe-div");
-const show_results_div = document.getElementById("show-results-div");
 const divNames = ["game-lobby-div", "draw-div", "starting-phrase-div", "describe-div", "show-results-div"];
 
 // to handle disconnects different if the game has game has started
 var is_waiting = false;
 var game_state = "lobby";  // one of lobby, start, draw, describe
 const tasks = [];
+var tasksCompleted = 0;
 
-var game_state = "draw";
+// var game_state = "draw";
+
+// TODO: change typo describtion -> description
 
 // server communication in user lobby
 // _______________________________________________________________________________________________
@@ -99,8 +98,11 @@ function createUserNameInList(user_name) {
 // server communication in game
 // __________________________________________________________________________________________________________
 
-socket.on("game start", function() {
+socket.on("game start", function(numberOfPlayers) {
     // TODO require min user number
+    console.log(numberOfPlayers);
+    numberOfUsers = numberOfPlayers;
+    console.log(numberOfUsers);
     game_state = "start";
     makeCreatePhraseScreen();
 });
@@ -147,9 +149,9 @@ function startGame() {
 }
 
 function continueWithDrawing() {
-    
+    tasksCompleted++;
     var phrase;
-    
+
     if (game_state === "start") {
         phrase = document.getElementById("starting-phrase-input").value;
     } else {
@@ -159,35 +161,54 @@ function continueWithDrawing() {
         image_to_describe_div.innerHTML = "";
     }
 
-    socket.emit("push task", "describe", phrase, game_code);
+    //     phrase = document.getElementById("describtion-input").value;
+    //     document.getElementById("describtion-input").value = "";
+    //     continueWithEndScreen();
+    socket.emit("push task", "describe", phrase, user_name, game_code);
 
     // TODO counter for game length and Game end
-    if (tasks.length > 0) {
-        makeDrawScreen(tasks.pop().task);
-        game_state = "draw";
+    if (tasksCompleted < numberOfUsers) {
+        if (tasks.length > 0) {
+            makeDrawScreen(tasks.pop().task);
+            game_state = "draw";
+        } else {
+            is_waiting = true;
+            game_state = "draw";
+            makeWaitScreen();
+        }
     } else {
-        is_waiting = true;
-        game_state = "draw";
-        makeWaitScreen();
+        continueWithEndscreen();
     }
 }
 
 function continueWithDescribing() {
-
+    tasksCompleted++;
     const to_draw = document.getElementById("to-draw");
     to_draw.innerHTML = "";
 
     const drawing = canvas.toDataURL();
-    socket.emit("push task", "draw", drawing, game_code);
+    socket.emit("push task", "draw", drawing, user_name, game_code);
 
-    if (tasks.length > 0) {
-        makeDescribeScreen(tasks.pop().task);
-        game_state = "describe";
+    if (tasksCompleted < numberOfUsers){
+        if (tasks.length > 0) {
+            makeDescribeScreen(tasks.pop().task);
+            game_state = "describe";
+        } else {
+            if (tasksCompleted <= numberOfUsers){
+                is_waiting = true;
+                game_state = "describe";
+                makeWaitScreen();
+            }
+        }
     } else {
-        is_waiting = true;
-        game_state = "describe";
-        makeWaitScreen();
+        continueWithEndscreen();
     }
+}
+
+function continueWithEndscreen() {
+    is_waiting = true;
+    game_state = "finish";
+    makeWaitScreen();
 }
 
 // Help function for all other make...Screen functions

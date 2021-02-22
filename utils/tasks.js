@@ -1,12 +1,11 @@
 const tasks = {};
 const taskSorted = {};
-function saveTask(user, task) {
-    if (tasks.find(task => task.user.id === user.id)) {
-        if(!tasks.user){        // if it does not exist, make a new stack
-            tasks[user] = [task]
-        } else {
-            tasks.user.push(task)
-        }
+
+function saveTasks(user, task) {
+    if(!tasks.user){        // if it does not exist, make a new stack
+        tasks[user] = [task]
+    } else {
+        tasks.user.push(task)
     }
 }
 
@@ -21,5 +20,5 @@ function loadTasks(playerList) {
 }
 
 module.exports = {
-    saveTask,
+    saveTasks,
 }

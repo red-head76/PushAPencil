@@ -4,7 +4,7 @@ const express = require('express');
 const socket = require('socket.io');
 const { userJoin, getAllUsersInRoom, userLeave, getGameCode, userExists } = require('./utils/users');
 const { newGameId, gameExists, newInGameRoom, nextPlayer, roomInGame } = require('./utils/rooms');
-
+const { saveTasks, loadTasks } = require('./utils/tasks');
 const app = express();
 const server = http.createServer(app);
 const io = socket(server);
@@ -47,13 +47,14 @@ io.on('connection', function (socket) {
         }
     });
     
-    socket.on("push task", function(type, task, game_code) {
+    socket.on("push task", function(type, task, user_name, game_code) {
         socket.to(nextPlayer(socket.id, game_code).id).emit("next task", type, task);
-        saveTaks(user, task);
+        saveTasks(user_name, task)
     });
         
     socket.on("game start", function(game_code) {
-        socket.to(game_code).broadcast.emit("game start");
+        const numberOfPlayers = getAllUsersInRoom(game_code).length;
+        socket.to(game_code).emit("game start", numberOfPlayers);
         const player_list = getAllUsersInRoom(game_code);
         const in_game_room = newInGameRoom(game_code, player_list);
     });
