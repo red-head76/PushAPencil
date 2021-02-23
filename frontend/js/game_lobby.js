@@ -100,9 +100,7 @@ function createUserNameInList(user_name) {
 
 socket.on("game start", function(numberOfPlayers) {
     // TODO require min user number
-    console.log(numberOfPlayers);
     numberOfUsers = numberOfPlayers;
-    console.log(numberOfUsers);
     game_state = "start";
     makeCreatePhraseScreen();
 });
@@ -206,7 +204,7 @@ function continueWithDescribing() {
 }
 
 function continueWithEndscreen() {
-    is_waiting = true;
+    is_waiting = false;
     game_state = "finish";
     makeWaitScreen();
 }

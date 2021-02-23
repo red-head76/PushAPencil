@@ -54,7 +54,7 @@ io.on('connection', function (socket) {
         
     socket.on("game start", function(game_code) {
         const numberOfPlayers = getAllUsersInRoom(game_code).length;
-        socket.to(game_code).emit("game start", numberOfPlayers);
+        io.to(game_code).emit("game start", numberOfPlayers);
         const player_list = getAllUsersInRoom(game_code);
         const in_game_room = newInGameRoom(game_code, player_list);
     });
