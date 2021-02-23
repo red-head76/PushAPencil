@@ -125,6 +125,10 @@ socket.on("next task", function(type, task) {
     }
 });
 
+socket.on("game finished", function(all_tasks) {
+    makeResultsScreen(all_tasks);
+});
+
 // in game functions
 // __________________________________________________________________________________________________________
 
@@ -204,7 +208,8 @@ function continueWithDescribing() {
 }
 
 function continueWithEndscreen() {
-    is_waiting = false;
+    is_waiting = false;        
+    socket.emit("finished", game_code);
     game_state = "finish";
     makeWaitScreen();
 }
@@ -253,8 +258,59 @@ function makeWaitScreen() {
     makeScreen(false);
 }
 
-function makeResultsScreen() {
+function makeResultsScreen(all_tasks) {
     makeScreen("show-results-div");
+
+    const accordion = document.getElementById("accordionResults");
+    
+    for (var i = 0; i < Object.keys(all_tasks).length; i++) {
+  
+        const div = document.createElement("div");
+        div.className = "accordion-item";
+        
+        btn_text = document.createTextNode(all_tasks[i][0]);
+        
+        const button = document.createElement("button");
+        button.className = "accordion-button";
+        button.setAttribute("type", "button");
+        button.setAttribute("data-bs-toggle", "collapse");
+        button.setAttribute("data-bs-target", "#collapse-" + i);
+        button.setAttribute("aria-expanded", "false");
+        button.setAttribute("aria-controls", "collapse-" + i); 
+        button.appendChild(btn_text);
+        
+        const h2 = document.createElement("h2");
+        h2.className = "accordion-header";
+        h2.id = "heading-" + i;
+        h2.appendChild(button);
+        
+        accordion.appendChild(h2);
+        
+        const inner_div = document.createElement("div");
+        inner_div.id = "collapse-" + i;
+        inner_div.className = "accordion-collapse collapse show";
+        inner_div.setAttribute("aria-labelledby", "heading-" + i);
+        inner_div.setAttribute("data-bs-parent", "#accordionResults");
+        
+        const inner_div_body = document.createElement("div");
+        inner_div_body.className = "accordion-body";
+        
+        for (var j = 1; j < all_tasks[i].length; j++) {
+            task = all_tasks[i][j];
+            if (task.slice(0, 14) == "data:image/png") {
+               const img = document.createElement("img");
+               img.src = task;
+               img.style.height = "500px";
+               inner_div_body.appendChild(img);
+            } else {
+                const text = document.createTextNode(task);
+                inner_div_body.appendChild(text);
+            }
+        }
+        inner_div.appendChild(inner_div_body);
+        div.appendChild(inner_div);
+        accordion.appendChild(div);
+    }
 }
 
 
