@@ -63,7 +63,7 @@ io.on('connection', function (socket) {
         userFinished(socket.id);
         if (gameFinished(game_code)) {
             users = getAllUsersInRoom(game_code);
-            tasks = loadTasks(users);
+            tasks = loadTasks(users, game_code);
             io.to(game_code).emit("game finished", tasks);
         }
     });

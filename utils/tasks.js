@@ -1,31 +1,31 @@
-const tasks = {};
-const taskSorted = {};
+const tasks = [];
 
-function saveTasks(user, task) {
-    if(!tasks[user]){        // if it does not exist, make a new stack
-        tasks[user] = [task]
+function saveTasks(user, task, game_code) {
+    if (!tasks[game_code]) {
+        tasks[game_code] = {}
+        tasks[game_code][user] = [task];
     } else {
-        tasks[user].push(task)
+        if(!tasks[game_code][user]) {        // if it does not exist, make a new stack
+            tasks[game_code][user] = [task];
+        } else {
+            tasks[game_code][user].push(task)
+        }
     }
 }
 
-function loadTasks(playerList) {
+function loadTasks(playerList, game_code) {
 
-    number_of_tasks = tasks[playerList[0].user_name].length;
+    number_of_tasks = tasks[game_code][playerList[0].user_name].length;
     var all_tasks = {};
     
-    for (var i = 0; i < number_of_tasks; i++) {
+    for (var task_number = 0; task_number < number_of_tasks; task_number++) {
         tasks_sorted = []
-        for (var j = i; j < playerList.length + i; j++) {
-            player = playerList[j % playerList.length].user_name
-            if (all_tasks[i]) {
-                all_tasks[i].push(tasks[player][(j + i) % playerList.length]);
-            } else {
-                all_tasks[i] = [tasks[player][(j + i) % playerList.length]];
-            }
+        for (var player_index = task_number; player_index < number_of_tasks + task_number; player_index++) {
+            player = playerList[player_index % playerList.length].user_name
+            tasks_sorted.push(tasks[game_code][player][player_index - task_number])
         }
+        all_tasks[task_number] = tasks_sorted;
     }
-
     return (all_tasks);
 }
 

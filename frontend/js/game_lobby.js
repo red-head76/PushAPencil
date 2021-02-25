@@ -171,7 +171,7 @@ function continueWithDrawing() {
     // TODO counter for game length and Game end
     if (tasksCompleted < numberOfUsers) {
         if (tasks.length > 0) {
-            makeDrawScreen(tasks.pop().task);
+            makeDrawScreen(tasks.shift().task);
             game_state = "draw";
         } else {
             is_waiting = true;
@@ -193,7 +193,7 @@ function continueWithDescribing() {
 
     if (tasksCompleted < numberOfUsers){
         if (tasks.length > 0) {
-            makeDescribeScreen(tasks.pop().task);
+            makeDescribeScreen(tasks.shift().task);
             game_state = "describe";
         } else {
             if (tasksCompleted <= numberOfUsers){
@@ -284,7 +284,7 @@ function makeResultsScreen(all_tasks) {
         h2.id = "heading-" + i;
         h2.appendChild(button);
         
-        accordion.appendChild(h2);
+        div.appendChild(h2);
         
         const inner_div = document.createElement("div");
         inner_div.id = "collapse-" + i;
