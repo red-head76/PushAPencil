@@ -1,7 +1,20 @@
-1 Multiplayer: https://www.youtube.com/watch?v=jD7FnbI76Hg
-2 rechte Seite des Bildschirms gestalten
-3 layout neu machen
-3 Fill funktion optimieren http://www.williammalone.com/articles/html5-canvas-javascript-paint-bucket-tool/
-4 Abtastrate höher
-4 Zurückfunktion
-4 Den Cursor entsprechend Tool und Größe ändern.
+1 Speichersystem optimieren:
+    room und in_game_room zusammenlegen, user und tasks überdenken
+    schauen welche Struktur am besten für eine Datenbank geeignet wäre
+    welches Datenbanksystem
+    Datenbank implementieren
+
+2 Server kommunikation auf skalierbarkeit prüfen
+    https://medium.com/containers-on-aws/scaling-a-realtime-chat-app-on-aws-using-socket-io-redis-and-aws-fargate-4ed63fb1b681
+    alternativen in betracht ziehen (https://www.npmjs.com/package/websocket), was gibts sonst noch?
+
+3 Disconnect verhalten, überlegen wie wir die selbe user id wieder bekommen
+
+4 serverkommunikation einheitlicher und schöner schreiben
+
+5 Abtastrate höher
+
+6 Bugs fixen: 
+    Hintergrundfarbe wird nicht gespeichert
+    neu laden ist doof
+    wenn man während des games zurück drückt, landet man auf der Startseite mit der Meldung falscher game code
