@@ -144,6 +144,13 @@ submit_drawing_btn.addEventListener("click", continueWithDescribing);
 const submit_describtion_btn = document.getElementById("submit-describtion-btn");
 submit_describtion_btn.addEventListener("click", continueWithDrawing);
 
+const next_game_btn = document.getElementById("next-game");
+next_game_btn.addEventListener("click", nextGame);
+
+function nextGame() {
+    window.location = 'index.html';
+}
+
 function startGame() {
     socket.emit("game start", game_code);
     makeCreatePhraseScreen();
