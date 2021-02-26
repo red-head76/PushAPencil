@@ -5,21 +5,20 @@ window.addEventListener("load", load);
 const url = new URL(window.location.href);
 const user_name = url.searchParams.get("user-name");
 var game_code = url.searchParams.get("game-code");
+var numberOfUsers;
 
 // divs to switch between for differen game states
-const game_lobby_div = document.getElementById("game-lobby-div");
-const draw_div = document.getElementById("draw-div");
-const starting_phrase_div = document.getElementById("starting-phrase-div");
-const describe_div = document.getElementById("describe-div");
-const show_results_div = document.getElementById("show-results-div");
 const divNames = ["game-lobby-div", "draw-div", "starting-phrase-div", "describe-div", "show-results-div"];
 
 // to handle disconnects different if the game has game has started
 var is_waiting = false;
 var game_state = "lobby";  // one of lobby, start, draw, describe
 const tasks = [];
+var tasksCompleted = 0;
 
-var game_state = "draw";
+// var game_state = "draw";
+
+// TODO: change typo describtion -> description
 
 // server communication in user lobby
 // _______________________________________________________________________________________________
@@ -99,8 +98,9 @@ function createUserNameInList(user_name) {
 // server communication in game
 // __________________________________________________________________________________________________________
 
-socket.on("game start", function() {
+socket.on("game start", function(numberOfPlayers) {
     // TODO require min user number
+    numberOfUsers = numberOfPlayers;
     game_state = "start";
     makeCreatePhraseScreen();
 });
@@ -125,6 +125,10 @@ socket.on("next task", function(type, task) {
     }
 });
 
+socket.on("game finished", function(all_tasks) {
+    makeResultsScreen(all_tasks);
+});
+
 // in game functions
 // __________________________________________________________________________________________________________
 
@@ -147,9 +151,9 @@ function startGame() {
 }
 
 function continueWithDrawing() {
-    
+    tasksCompleted++;
     var phrase;
-    
+
     if (game_state === "start") {
         phrase = document.getElementById("starting-phrase-input").value;
     } else {
@@ -159,35 +163,55 @@ function continueWithDrawing() {
         image_to_describe_div.innerHTML = "";
     }
 
-    socket.emit("push task", "describe", phrase, game_code);
+    //     phrase = document.getElementById("describtion-input").value;
+    //     document.getElementById("describtion-input").value = "";
+    //     continueWithEndScreen();
+    socket.emit("push task", "describe", phrase, user_name, game_code);
 
     // TODO counter for game length and Game end
-    if (tasks.length > 0) {
-        makeDrawScreen(tasks.pop().task);
-        game_state = "draw";
+    if (tasksCompleted < numberOfUsers) {
+        if (tasks.length > 0) {
+            makeDrawScreen(tasks.shift().task);
+            game_state = "draw";
+        } else {
+            is_waiting = true;
+            game_state = "draw";
+            makeWaitScreen();
+        }
     } else {
-        is_waiting = true;
-        game_state = "draw";
-        makeWaitScreen();
+        continueWithEndscreen();
     }
 }
 
 function continueWithDescribing() {
-
+    tasksCompleted++;
     const to_draw = document.getElementById("to-draw");
     to_draw.innerHTML = "";
 
     const drawing = canvas.toDataURL();
-    socket.emit("push task", "draw", drawing, game_code);
+    socket.emit("push task", "draw", drawing, user_name, game_code);
 
-    if (tasks.length > 0) {
-        makeDescribeScreen(tasks.pop().task);
-        game_state = "describe";
+    if (tasksCompleted < numberOfUsers){
+        if (tasks.length > 0) {
+            makeDescribeScreen(tasks.shift().task);
+            game_state = "describe";
+        } else {
+            if (tasksCompleted <= numberOfUsers){
+                is_waiting = true;
+                game_state = "describe";
+                makeWaitScreen();
+            }
+        }
     } else {
-        is_waiting = true;
-        game_state = "describe";
-        makeWaitScreen();
+        continueWithEndscreen();
     }
+}
+
+function continueWithEndscreen() {
+    is_waiting = false;        
+    socket.emit("finished", game_code);
+    game_state = "finish";
+    makeWaitScreen();
 }
 
 // Help function for all other make...Screen functions
@@ -234,8 +258,59 @@ function makeWaitScreen() {
     makeScreen(false);
 }
 
-function makeResultsScreen() {
+function makeResultsScreen(all_tasks) {
     makeScreen("show-results-div");
+
+    const accordion = document.getElementById("accordionResults");
+    
+    for (var i = 0; i < Object.keys(all_tasks).length; i++) {
+  
+        const div = document.createElement("div");
+        div.className = "accordion-item";
+        
+        btn_text = document.createTextNode(all_tasks[i][0]);
+        
+        const button = document.createElement("button");
+        button.className = "accordion-button";
+        button.setAttribute("type", "button");
+        button.setAttribute("data-bs-toggle", "collapse");
+        button.setAttribute("data-bs-target", "#collapse-" + i);
+        button.setAttribute("aria-expanded", "false");
+        button.setAttribute("aria-controls", "collapse-" + i); 
+        button.appendChild(btn_text);
+        
+        const h2 = document.createElement("h2");
+        h2.className = "accordion-header";
+        h2.id = "heading-" + i;
+        h2.appendChild(button);
+        
+        div.appendChild(h2);
+        
+        const inner_div = document.createElement("div");
+        inner_div.id = "collapse-" + i;
+        inner_div.className = "accordion-collapse collapse show";
+        inner_div.setAttribute("aria-labelledby", "heading-" + i);
+        inner_div.setAttribute("data-bs-parent", "#accordionResults");
+        
+        const inner_div_body = document.createElement("div");
+        inner_div_body.className = "accordion-body";
+        
+        for (var j = 1; j < all_tasks[i].length; j++) {
+            task = all_tasks[i][j];
+            if (task.slice(0, 14) == "data:image/png") {
+               const img = document.createElement("img");
+               img.src = task;
+               img.style.height = "500px";
+               inner_div_body.appendChild(img);
+            } else {
+                const text = document.createTextNode(task);
+                inner_div_body.appendChild(text);
+            }
+        }
+        inner_div.appendChild(inner_div_body);
+        div.appendChild(inner_div);
+        accordion.appendChild(div);
+    }
 }
 
 

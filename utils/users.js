@@ -1,8 +1,13 @@
 const users = [];
+const user_has_finished = {};
 
 // TODO: make a database
 
 function userJoin(id, user_name, room) {
+    
+    user_has_finished[id] = false;
+    finished = false;
+    
     const user = { id, user_name, room };
     
     // TODO: const ids to make this test work
@@ -10,6 +15,24 @@ function userJoin(id, user_name, room) {
         users.push(user);
         return user;
     }
+}
+
+function userFinished(id) {
+    user_has_finished[id] = true;
+}
+
+function gameFinished(game_code) {
+    
+    players = getAllUsersInRoom(game_code);
+    game_finished = true;
+    
+    for (var i = 0; i < players.length; i++) {
+        if (!user_has_finished[players[i].id]) {
+            game_finished = false;
+        }
+    }
+    
+    return game_finished;
 }
 
 function getAllUsersInRoom(game_code) {
@@ -37,4 +60,6 @@ module.exports = {
     userLeave,
     getGameCode,
     userExists,
+    userFinished,
+    gameFinished,
 }
